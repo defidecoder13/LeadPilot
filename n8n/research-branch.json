@@ -1,0 +1,481 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "research-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "7a19945b-9be4-49b2-87b9-f91afbc2349c",
+      "name": "TRIGGER - Research Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1520,
+        -1000
+      ],
+      "webhookId": "a3f65520-2046-4c9a-aa48-d1179dec0974"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $input.first().json.body ?? $input.first().json;\nconst leadId = String(body.lead_id ?? '').trim();\nconst uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\nif (!uuidRe.test(leadId)) {\n  return [[], [{ json: { success: false, reason: 'INVALID_LEAD_ID', message: 'lead_id must be a valid UUID.' } }]];\n}\nreturn [[{ json: { lead_id: leadId } }], []];"
+      },
+      "id": "9581371c-e76b-4eda-9094-1889691a8a77",
+      "name": "VALIDATE - Research Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1300,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "e4525635-ad6e-4a6b-be26-c945e39ecbd3",
+      "name": "RESPOND - Invalid Request",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1300,
+        -760
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ \"SELECT id, business_name, website, place_id, category, address, research_status, research_started_at FROM public.leads WHERE id = '\" + $json.lead_id + \"'\" }}",
+        "options": {}
+      },
+      "id": "a155f200-f5e6-42a0-a001-f2a60daca606",
+      "name": "LOOKUP - Lead by ID",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1080,
+        -1000
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "x5obZo6hnNkwr1Ba",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst requestedId = $('VALIDATE - Research Input').first().json.lead_id;\nif (items.length === 0) {\n  return [[{ json: { success: false, lead_id: requestedId, reason: 'NOT_FOUND', message: 'No lead exists for the provided lead_id.' } }], [], [], []];\n}\nconst lead = items[0].json;\nconst state = String(lead.research_status || 'NOT_STARTED');\nif (state === 'COMPLETED') {\n  return [[], [{ json: { success: true, status: 'ALREADY_COMPLETED', research_status: 'COMPLETED', lead_id: lead.id, business_name: lead.business_name, message: 'Research already exists for this lead.' } }], [], []];\n}\nif (state === 'IN_PROGRESS') {\n  var startedAt = lead.research_started_at ? Date.parse(lead.research_started_at) : NaN;\n  var STALE_MS = 30 * 60 * 1000;\n  if (!isNaN(startedAt) && Date.now() - startedAt > STALE_MS) {\n    return [[], [], [], [{ json: { id: lead.id, business_name: lead.business_name, website: lead.website, research_status: lead.research_status, recovered_stale: true } }]];\n  }\n  return [[], [], [{ json: { success: false, status: 'ALREADY_RUNNING', research_status: 'IN_PROGRESS', lead_id: lead.id, business_name: lead.business_name, message: 'Research is already running for this lead.' } }], []];\n}\nreturn [[], [], [], [{ json: lead }]];"
+      },
+      "id": "27196ceb-1619-498f-a394-7109b7773d77",
+      "name": "CHECK - Research State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -860,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "id": "507dca5a-f0a8-4ef9-a8eb-1950458a25b8",
+      "name": "RESPOND - Not Found",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -860,
+        -1240
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "52032ab7-afda-4a9c-bde7-0dbdd72aedfb",
+      "name": "RESPOND - Already Researched",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -640,
+        -1240
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 409
+        }
+      },
+      "id": "31c79317-ddbd-4a91-bea4-13a4886a45b6",
+      "name": "RESPOND - Already Running",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -420,
+        -1240
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ \"UPDATE public.leads SET research_status = 'IN_PROGRESS', research_started_at = NOW(), updated_at = NOW() WHERE id = '\" + $json.id + \"'\" }}",
+        "options": {}
+      },
+      "id": "7232095d-b71d-49da-993b-1d6630bde6a7",
+      "name": "UPDATE - Mark In Progress",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -640,
+        -1000
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "x5obZo6hnNkwr1Ba",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const lead = $('LOOKUP - Lead by ID').first().json;\nconst website = String(lead.website || '').trim();\nif (!website) {\n  return [[], [{ json: { success: false, lead_id: lead.id, business_name: lead.business_name, failure: { status: 'FAILED', reason: 'NO_WEBSITE', message: 'No company website is available for this lead.' } } }]];\n}\nif (!/^https?:\\/\\//i.test(website)) {\n  return [[], [{ json: { success: false, lead_id: lead.id, business_name: lead.business_name, failure: { status: 'FAILED', reason: 'INVALID_URL', message: 'The stored website URL is not a valid http(s) URL.' } } }]];\n}\nreturn [[{ json: lead }], []];"
+      },
+      "id": "b418d9a6-4bdb-4ace-b77d-2aadf43639ca",
+      "name": "CHECK - Website Present",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -420,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.website }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 20000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": true,
+              "maxRedirects": 5
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        },
+        "onError": "continueErrorOutput"
+      },
+      "id": "41c1a759-672a-467b-b85f-2d71bd71dd1c",
+      "name": "FETCH - Company Website",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -200,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const lead = $('LOOKUP - Lead by ID').first().json;\nconst raw = $input.first().json;\nconst msg = String((raw && (raw.message || (raw.error && raw.error.message))) || 'Website request failed').slice(0, 300);\nlet reason = 'HTTP_ERROR';\nif (/timeout|timed out|ETIMEDOUT/i.test(msg)) {\n  reason = 'TIMEOUT';\n} else if (/ENOTFOUND|EAI_AGAIN|ECONNREFUSED|ENETUNREACH|DNS|getaddrinfo/i.test(msg)) {\n  reason = 'WEBSITE_UNAVAILABLE';\n}\nreturn [{ json: { success: false, lead_id: lead.id, business_name: lead.business_name, failure: { status: 'FAILED', reason: reason, message: msg } } }];"
+      },
+      "id": "1828d710-fe36-4dd5-b6d9-213ff9859af7",
+      "name": "PREPARE - Fetch Failure",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        -1240
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "function clean(s) { return String(s || '').replace(/\\s+/g, ' ').trim(); }\nconst lead = $('LOOKUP - Lead by ID').first().json;\nconst html = String($input.first().json.data || '').slice(0, 500000);\nconst stripped = html.replace(/<(script|style|noscript|template|svg|canvas|iframe)[\\s\\S]*?<\\/\\1\\s*>/gi, ' ');\nconst titleMatch = stripped.match(/<title[^>]*>([\\s\\S]*?)<\\/title\\s*>/i);\nconst title = clean(titleMatch ? titleMatch[1] : '');\nlet metaDescription = '';\nconst metaMatch = stripped.match(/<meta[^>]+(?:name|property)\\s*=\\s*[\"']description[\"'][^>]*>/i);\nif (metaMatch) {\n  const contentMatch = metaMatch[0].match(/content\\s*=\\s*[\"']([^\"']*)[\"']/i);\n  if (contentMatch) { metaDescription = clean(contentMatch[1]); }\n}\nconst headings = [];\nconst headingRe = /<(h1|h2|h3)[^>]*>([\\s\\S]*?)<\\/\\1\\s*>/gi;\nlet hm;\nwhile ((hm = headingRe.exec(stripped)) !== null && headings.length < 30) {\n  const text = clean(hm[2].replace(/<[^>]+>/g, ' '));\n  if (text) { headings.push(text); }\n}\nconst paragraphs = [];\nconst paraRe = /<p[^>]*>([\\s\\S]*?)<\\/p\\s*>/gi;\nlet pm;\nwhile ((pm = paraRe.exec(stripped)) !== null && paragraphs.length < 40) {\n  const text = clean(pm[1].replace(/<[^>]+>/g, ' '));\n  if (text.length >= 20) { paragraphs.push(text); }\n}\nconst links = [];\nconst linkRe = /<a[^>]+href\\s*=\\s*[\"']([^\"']+)[\"'][^>]*>([\\s\\S]*?)<\\/a\\s*>/gi;\nlet lm;\nwhile ((lm = linkRe.exec(stripped)) !== null && links.length < 50) {\n  const text = clean(lm[2].replace(/<[^>]+>/g, ' '));\n  const href = lm[1].trim();\n  if (text && text.length <= 120 && href) { links.push({ text: text, href: href }); }\n}\nif (!title && headings.length === 0 && paragraphs.length === 0) {\n  return [[], [{ json: { success: false, lead_id: lead.id, business_name: lead.business_name, failure: { status: 'FAILED', reason: 'EMPTY_CONTENT', message: 'The website returned no meaningful text content.' } } }]];\n}\nconst extraction = {\n  status: 'FETCHED',\n  website: lead.website,\n  title: title,\n  meta_description: metaDescription,\n  headings: headings,\n  paragraphs: paragraphs,\n  links: links,\n  fetched_at: new Date().toISOString(),\n  extraction_version: '1'\n};\nreturn [[{ json: { lead_id: lead.id, business_name: lead.business_name, website: lead.website, extraction: extraction } }], []];"
+      },
+      "id": "7804f839-d63a-4eda-9aca-265e9d816f13",
+      "name": "EXTRACT - Page Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ \"UPDATE public.leads SET research_data = '\" + JSON.stringify($json.extraction).replace(/'/g, \"''\") + \"', research_started_at = NULL, updated_at = NOW() WHERE id = '\" + $json.lead_id + \"'\" }}",
+        "options": {}
+      },
+      "id": "b4ee3b13-37f2-41d0-b670-65e2d3e5733d",
+      "name": "SAVE - Website Research",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        -1000
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "x5obZo6hnNkwr1Ba",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ \"UPDATE public.leads SET research_status = 'FAILED', research_started_at = NULL, research_data = '\" + JSON.stringify($json.failure).replace(/'/g, \"''\") + \"', updated_at = NOW() WHERE id = '\" + $json.lead_id + \"'\" }}",
+        "options": {}
+      },
+      "id": "63d8d7dc-a6e8-4b1e-9113-3e0fe724b084",
+      "name": "UPDATE - Mark Failed",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -420,
+        -760
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "x5obZo6hnNkwr1Ba",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "5c877637-a8b8-4d8b-8bf8-44807becfe4e",
+      "name": "RESPOND - Research Failed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -200,
+        -760
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, status: 'FETCHED', research_status: 'IN_PROGRESS', lead_id: $json.lead_id, business_name: $json.business_name } }}",
+        "options": {}
+      },
+      "id": "e656d9ac-4ccd-46f7-92dd-e65685c4a4d6",
+      "name": "RESPOND - Research Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        460,
+        -1000
+      ]
+    }
+  ],
+  "connections": {
+    "TRIGGER - Research Lead": {
+      "main": [
+        [
+          {
+            "node": "VALIDATE - Research Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VALIDATE - Research Input": {
+      "main": [
+        [
+          {
+            "node": "LOOKUP - Lead by ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RESPOND - Invalid Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LOOKUP - Lead by ID": {
+      "main": [
+        [
+          {
+            "node": "CHECK - Research State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHECK - Research State": {
+      "main": [
+        [
+          {
+            "node": "RESPOND - Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RESPOND - Already Researched",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RESPOND - Already Running",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "UPDATE - Mark In Progress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPDATE - Mark In Progress": {
+      "main": [
+        [
+          {
+            "node": "CHECK - Website Present",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHECK - Website Present": {
+      "main": [
+        [
+          {
+            "node": "FETCH - Company Website",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "UPDATE - Mark Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FETCH - Company Website": {
+      "main": [
+        [
+          {
+            "node": "EXTRACT - Page Content",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PREPARE - Fetch Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PREPARE - Fetch Failure": {
+      "main": [
+        [
+          {
+            "node": "UPDATE - Mark Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EXTRACT - Page Content": {
+      "main": [
+        [
+          {
+            "node": "SAVE - Website Research",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "UPDATE - Mark Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAVE - Website Research": {
+      "main": [
+        [
+          {
+            "node": "RESPOND - Research Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPDATE - Mark Failed": {
+      "main": [
+        [
+          {
+            "node": "RESPOND - Research Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

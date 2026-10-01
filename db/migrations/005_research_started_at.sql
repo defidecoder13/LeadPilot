@@ -1,0 +1,2 @@
+ALTER TABLE public.leads
+ADD COLUMN IF NOT EXISTS research_started_at TIMESTAMPTZ NULL;

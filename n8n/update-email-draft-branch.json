@@ -1,0 +1,372 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "update-email-draft",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "49e787b9-6567-4b89-8d46-fc10589c803f",
+      "name": "TRIGGER - Update Email Draft",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1520,
+        -1000
+      ],
+      "webhookId": "9eb239b7-a208-4ce2-ac91-7197e73c0026"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const body = $input.first().json.body ?? $input.first().json;\nconst leadId = String(body.lead_id ?? '').trim();\nconst subject = typeof body.email_subject === 'string' ? body.email_subject : '';\nconst emailBody = typeof body.email_body === 'string' ? body.email_body : '';\nconst uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\nif (!uuidRe.test(leadId)) {\n  return [{ json: { success: false, status: 'INVALID_LEAD_ID', message: 'lead_id must be a valid UUID.' } }];\n}\nif (!subject.trim()) {\n  return [{ json: { success: false, status: 'INVALID_SUBJECT', message: 'email_subject must not be empty.' } }];\n}\nif (!emailBody.trim()) {\n  return [{ json: { success: false, status: 'INVALID_BODY', message: 'email_body must not be empty.' } }];\n}\nreturn [{ json: { success: true, status: 'VALID', lead_id: leadId, email_subject: subject.trim(), email_body: emailBody } }];"
+      },
+      "id": "13304d48-4b88-4145-ba38-03d9633f68c3",
+      "name": "VALIDATE - Update Email Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1300,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0f018aa5-f8ad-4bf7-bff5-88f9afd66045",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "VALID",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6180f418-1179-43bf-86de-e1f7812f0750",
+      "name": "IF - Valid Update?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1080,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, status: $json.status, message: $json.message } }}",
+        "options": {}
+      },
+      "id": "ab24df65-e726-4a24-b34c-e3bde586f821",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1080,
+        -760
+      ],
+      "name": "RESPOND - Update Invalid"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ \"SELECT id, email_status FROM public.leads WHERE id = '\" + $json.lead_id + \"'\" }}",
+        "options": {}
+      },
+      "id": "42d8902a-33fa-473a-90b2-b578bb998690",
+      "name": "LOOKUP - Lead for Email Draft",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -860,
+        -1000
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "x5obZo6hnNkwr1Ba",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nconst requestedId = $('VALIDATE - Update Email Draft').first().json.lead_id;\nif (items.length === 0 || !items[0].json.id) {\n  return [{ json: { success: false, status: 'NOT_FOUND', lead_id: requestedId, message: 'No lead exists for the provided lead_id.' } }];\n}\nconst lead = items[0].json;\nif (lead.email_status === 'SENT') {\n  return [{ json: { success: false, status: 'EMAIL_ALREADY_SENT', lead_id: lead.id, email_status: 'SENT', message: 'Sent emails cannot be edited.' } }];\n}\nconst validated = $('VALIDATE - Update Email Draft').first().json;\nreturn [{ json: { success: true, status: 'READY', ...lead, email_subject: validated.email_subject, email_body: validated.email_body } }];"
+      },
+      "id": "e83944c9-f904-46f0-afbc-baad25d44290",
+      "name": "CHECK - Draft Editable State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "24ce4095-7c63-45d5-a572-7fd219f3a892",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "READY",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "31c3f768-11dc-4bd5-88a2-758e154ce558",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "NOT_FOUND",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a92586ca-5844-40dc-9907-2c0683b2dd7c",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "EMAIL_ALREADY_SENT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fefb6419-cc74-4270-adb3-9e503a5f8d34",
+      "name": "SWITCH - Draft Editable State",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -420,
+        -1000
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ \"UPDATE public.leads SET email_subject = '\" + $json.email_subject.replace(/'/g, \"''\") + \"', email_body = '\" + $json.email_body.replace(/'/g, \"''\") + \"', email_status = 'DRAFTED', updated_at = NOW() WHERE id = '\" + $json.id + \"' RETURNING id, email_subject, email_body, email_status;\" }}",
+        "options": {}
+      },
+      "id": "a7b273b4-2023-4ac1-9750-4f6b9cc78b28",
+      "name": "UPDATE - Email Draft",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -200,
+        -1000
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "x5obZo6hnNkwr1Ba",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, status: $json.status, lead_id: $json.lead_id, message: $json.message } }}",
+        "options": {}
+      },
+      "id": "0d9f12b3-884a-45d1-bcd8-3a06c110e0ef",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -420,
+        -760
+      ],
+      "name": "RESPOND - Draft Not Found"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, status: $json.status, lead_id: $json.lead_id, email_status: $json.email_status, message: $json.message } }}",
+        "options": {}
+      },
+      "id": "8a309c19-8d26-4814-9224-1be0c27e13f5",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -200,
+        -760
+      ],
+      "name": "RESPOND - Draft Already Sent"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, status: 'DRAFTED', email_status: $json.email_status, lead_id: $json.id, email_subject: $json.email_subject, email_body: $json.email_body, message: 'Email draft updated successfully.' } }}",
+        "options": {}
+      },
+      "id": "48d78b2e-b9b4-43e5-a2db-aa7f05fecb62",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        20,
+        -1000
+      ],
+      "name": "RESPOND - Email Draft Updated"
+    }
+  ],
+  "connections": {
+    "TRIGGER - Update Email Draft": {
+      "main": [
+        [
+          {
+            "node": "VALIDATE - Update Email Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VALIDATE - Update Email Draft": {
+      "main": [
+        [
+          {
+            "node": "IF - Valid Update?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Valid Update?": {
+      "main": [
+        [
+          {
+            "node": "LOOKUP - Lead for Email Draft",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RESPOND - Update Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LOOKUP - Lead for Email Draft": {
+      "main": [
+        [
+          {
+            "node": "CHECK - Draft Editable State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CHECK - Draft Editable State": {
+      "main": [
+        [
+          {
+            "node": "SWITCH - Draft Editable State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SWITCH - Draft Editable State": {
+      "main": [
+        [
+          {
+            "node": "UPDATE - Email Draft",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RESPOND - Draft Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RESPOND - Draft Already Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "UPDATE - Email Draft": {
+      "main": [
+        [
+          {
+            "node": "RESPOND - Email Draft Updated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

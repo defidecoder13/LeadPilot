@@ -1,0 +1,1 @@
+ALTER TABLE leads ALTER COLUMN research_status SET DEFAULT 'NOT_STARTED';
