@@ -22,7 +22,11 @@ export class LeadDiscoveryError extends Error {
 const REQUEST_TIMEOUT_MS = 120000;
 
 function getWebhookUrl(): string {
-  const webhookUrl = process.env.NEXT_PUBLIC_N8N_LEAD_DISCOVERY_WEBHOOK_URL;
+  const webhookUrl =
+    process.env.NEXT_PUBLIC_N8N_LEAD_DISCOVERY_WEBHOOK_URL ||
+    (process.env.NEXT_PUBLIC_N8N_BASE_URL
+      ? `${process.env.NEXT_PUBLIC_N8N_BASE_URL.replace(/\/+$/, "")}/webhook/lead-discovery`
+      : undefined);
   if (!webhookUrl) {
     throw new LeadDiscoveryError(
       "Lead discovery is not configured.",
@@ -102,7 +106,11 @@ export type LeadsResponse = {
 };
 
 function getLeadsUrl(): string {
-  const leadsUrl = process.env.NEXT_PUBLIC_N8N_LEADS_WEBHOOK_URL;
+  const leadsUrl =
+    process.env.NEXT_PUBLIC_N8N_LEADS_WEBHOOK_URL ||
+    (process.env.NEXT_PUBLIC_N8N_BASE_URL
+      ? `${process.env.NEXT_PUBLIC_N8N_BASE_URL.replace(/\/+$/, "")}/webhook/leads`
+      : undefined);
   if (!leadsUrl) {
     throw new LeadDiscoveryError("Leads retrieval is not configured.", "configuration");
   }

@@ -39,13 +39,19 @@ export type DraftEmailInput = {
 const ACTION_TIMEOUT_MS = 300000;
 const QUICK_TIMEOUT_MS = 120000;
 
-const RESEARCH_URL = process.env.NEXT_PUBLIC_N8N_RESEARCH_WEBHOOK_URL;
-const CONTACT_EMAIL_URL = process.env.NEXT_PUBLIC_N8N_CONTACT_EMAIL_WEBHOOK_URL;
-const DRAFT_EMAIL_URL = process.env.NEXT_PUBLIC_N8N_DRAFT_EMAIL_WEBHOOK_URL;
-const APPROVE_EMAIL_URL = process.env.NEXT_PUBLIC_N8N_APPROVE_EMAIL_WEBHOOK_URL;
-const SEND_EMAIL_URL = process.env.NEXT_PUBLIC_N8N_SEND_EMAIL_WEBHOOK_URL;
-const DELETE_LEADS_URL = process.env.NEXT_PUBLIC_N8N_DELETE_LEADS_WEBHOOK_URL;
-const UPDATE_DRAFT_URL = process.env.NEXT_PUBLIC_N8N_UPDATE_EMAIL_DRAFT_WEBHOOK_URL;
+function resolveWebhookUrl(specificUrl: string | undefined, path: string): string | undefined {
+  if (specificUrl) return specificUrl;
+  const baseUrl = process.env.NEXT_PUBLIC_N8N_BASE_URL?.replace(/\/+$/, "");
+  return baseUrl ? `${baseUrl}/webhook/${path}` : undefined;
+}
+
+const RESEARCH_URL = resolveWebhookUrl(process.env.NEXT_PUBLIC_N8N_RESEARCH_WEBHOOK_URL, "research-lead");
+const CONTACT_EMAIL_URL = resolveWebhookUrl(process.env.NEXT_PUBLIC_N8N_CONTACT_EMAIL_WEBHOOK_URL, "find-contact-email");
+const DRAFT_EMAIL_URL = resolveWebhookUrl(process.env.NEXT_PUBLIC_N8N_DRAFT_EMAIL_WEBHOOK_URL, "draft-email");
+const APPROVE_EMAIL_URL = resolveWebhookUrl(process.env.NEXT_PUBLIC_N8N_APPROVE_EMAIL_WEBHOOK_URL, "approve-email");
+const SEND_EMAIL_URL = resolveWebhookUrl(process.env.NEXT_PUBLIC_N8N_SEND_EMAIL_WEBHOOK_URL, "send-approved-email");
+const DELETE_LEADS_URL = resolveWebhookUrl(process.env.NEXT_PUBLIC_N8N_DELETE_LEADS_WEBHOOK_URL, "delete-leads");
+const UPDATE_DRAFT_URL = resolveWebhookUrl(process.env.NEXT_PUBLIC_N8N_UPDATE_EMAIL_DRAFT_WEBHOOK_URL, "update-email-draft");
 
 export type UpdateDraftResult = {
   success: boolean;
