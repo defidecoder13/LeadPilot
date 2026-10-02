@@ -126,7 +126,10 @@ async function postWebhook(
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "1",
+      },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });

@@ -47,6 +47,7 @@ export async function startLeadDiscovery(payload: LeadDiscoveryPayload): Promise
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "1",
       },
       body: JSON.stringify(payload),
       signal: controller.signal,
@@ -240,6 +241,10 @@ export async function getLeads(): Promise<LeadsResponse> {
     const response = await fetch(getLeadsUrl(), {
       method: "GET",
       cache: "no-store",
+      headers: {
+        "ngrok-skip-browser-warning": "1",
+        Accept: "application/json",
+      },
       signal: controller.signal,
     });
 
