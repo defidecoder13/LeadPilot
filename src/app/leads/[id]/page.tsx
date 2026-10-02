@@ -474,226 +474,189 @@ export default function LeadDetailPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-8 py-6">
-      {/* Top Floating Glass Navigation */}
-      <header className="glass-panel mb-8 flex items-center justify-between rounded-2xl border border-white/10 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/leads"
-            className="btn-secondary group inline-flex items-center gap-2 rounded-xl px-3.5 py-1.5 text-xs font-semibold text-slate-300 transition-all hover:text-white"
-          >
-            <span aria-hidden="true" className="transition-transform group-hover:-translate-x-0.5">←</span>
-            <span>All Leads</span>
-          </Link>
-          <span className="text-slate-600">/</span>
-          <span className="hidden text-xs font-medium text-slate-400 sm:inline">
-            Workspace
-          </span>
-          {lead ? (
-            <>
-              <span className="hidden text-slate-600 sm:inline">/</span>
-              <span className="max-w-[200px] truncate text-xs font-semibold text-white">
-                {lead.business_name}
-              </span>
-            </>
-          ) : null}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-2 rounded-full border border-slate-800 bg-slate-900/60 px-3 py-1 text-[11px] font-medium text-slate-400 sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>n8n Active</span>
-          </div>
-          <Link
-            href="/"
-            className="rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-1.5 text-xs font-medium text-slate-300 hover:border-slate-700 hover:text-white"
-          >
-            + New Discovery
-          </Link>
-        </div>
+    <div className="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-5 sm:px-8 lg:px-12">
+      <header className="flex items-center justify-between gap-6 border-b border-line py-6 sm:py-7">
+        <Link
+          href="/leads"
+          className="inline-flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted hover:border-line-strong hover:text-ink"
+        >
+          ← Leads
+        </Link>
+        <p className="hidden rounded-full border border-line bg-surface px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted sm:block">
+          Lead workspace
+        </p>
       </header>
 
-      <main className="w-full" aria-busy={busy || undefined}>
+      <main className="w-full py-10 sm:py-14" aria-busy={busy || undefined}>
         {status === "loading" ? (
-          <div className="glass-panel flex flex-col gap-6 rounded-2xl border border-white/10 p-8 sm:p-12 animate-pulse">
-            <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-2xl bg-slate-800" />
-              <div className="flex flex-col gap-2">
-                <div className="h-6 w-48 rounded-lg bg-slate-800" />
-                <div className="h-4 w-32 rounded-lg bg-slate-800/60" />
-              </div>
-            </div>
-            <div className="h-24 w-full rounded-xl bg-slate-800/40" />
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="h-40 rounded-xl bg-slate-800/30" />
-              <div className="h-40 rounded-xl bg-slate-800/30" />
+          <div className="status-card" role="status">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false" className="animate-spin">
+              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeOpacity="0.3" strokeWidth="2" />
+              <path d="M18 10a8 8 0 0 0-8-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <div>
+              <p className="text-sm font-bold leading-snug">Loading lead…</p>
             </div>
           </div>
         ) : null}
 
         {status === "not-found" ? (
-          <div className="glass-panel flex flex-col items-center justify-center rounded-2xl border border-white/10 p-12 text-center" role="status">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800/80 text-slate-400">
-              <span className="text-2xl">?</span>
+          <div className="status-card" role="status">
+            <div>
+              <p className="text-sm font-bold leading-snug">Lead not found</p>
+              <p className="mt-1 text-sm leading-snug text-muted">
+                This lead does not exist in your LeadPilot list.
+              </p>
+              <Link href="/leads" className="primary-action mt-4 max-w-52">
+                Back to Leads
+              </Link>
             </div>
-            <h2 className="mt-4 text-xl font-bold text-white">Lead Not Found</h2>
-            <p className="mt-1 max-w-sm text-sm text-slate-400">
-              This company does not exist in your LeadPilot database.
-            </p>
-            <Link href="/leads" className="btn-primary mt-6 rounded-xl px-5 py-2.5 text-sm">
-              Back to Leads Dashboard
-            </Link>
           </div>
         ) : null}
 
         {status === "error" ? (
-          <div className="glass-panel flex flex-col items-center justify-center rounded-2xl border border-rose-500/20 p-12 text-center" role="alert">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-400">
-              <span className="text-2xl">!</span>
+          <div className="status-card" data-tone="error" role="alert">
+            <div>
+              <p className="text-sm font-bold leading-snug">Couldn&apos;t load this lead.</p>
+              <p className="mt-1 text-sm leading-snug">
+                We couldn&apos;t retrieve the lead data. Please try again.
+              </p>
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="primary-action mt-4 max-w-52"
+              >
+                Try Again
+              </button>
             </div>
-            <h2 className="mt-4 text-xl font-bold text-white">Couldn&apos;t load this lead</h2>
-            <p className="mt-1 max-w-sm text-sm text-slate-400">
-              We couldn&apos;t retrieve the company intelligence. Please try again.
-            </p>
-            <button
-              type="button"
-              onClick={handleRetry}
-              className="btn-primary mt-6 rounded-xl px-5 py-2.5 text-sm"
-            >
-              Retry Connection
-            </button>
           </div>
         ) : null}
 
         {status === "ready" && lead ? (
           <div className="flex flex-col gap-6">
-            {/* Hero Identity Card */}
-            <WorkspaceHeader lead={lead} />
+            <WorkspaceHeader lead={lead} nextAction={<NextAction {...actionProps} variant="header" />} />
 
             {notice ? <NoticeBanner notice={notice} /> : null}
 
-            {/* 5-Stage Visual Stepper */}
             <WorkspacePipeline lead={lead} />
 
-            {/* Unified Context-Aware Command Console (Only One Primary Action) */}
-            <NextAction {...actionProps} variant="header" />
+            <div className="mt-2 grid grid-cols-1 gap-x-10 gap-y-12 lg:grid-cols-[minmax(0,1fr)_300px]">
+              <div className="order-2 flex min-w-0 flex-col gap-12 lg:order-1">
 
-            {/* 2-Column Bento Grid Layout */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-              <div className="flex min-w-0 flex-col gap-6">
+            <WorkspaceSection
+              eyebrow="Research"
+              title={
+                researchDone
+                  ? "Company Intelligence"
+                  : researchRunning
+                    ? "Research in Progress"
+                    : "Research"
+              }
+            >
+              {researchRunning ? <ResearchRunning /> : null}
+              {canResearch ? (
+                <ResearchPending
+                  state={researchFailed ? "FAILED" : researchPending ? "PENDING" : "NOT_STARTED"}
+                  busy={busy}
+                  busyAction={busyAction}
+                  onResearch={handleResearch}
+                />
+              ) : null}
+              {researchDone && hasIntelligence ? (
+                <div id="intelligence" className="flex scroll-mt-6 flex-col gap-6">
+                  <Intelligence data={intelligence} />
+                  <Evidence items={evidenceItems} />
+                </div>
+              ) : null}
+              {researchDone && !hasIntelligence ? (
+                <p className="max-w-xl text-[15px] leading-relaxed text-muted">
+                  Research completed, but no analysis summary is available for this lead.
+                </p>
+              ) : null}
+            </WorkspaceSection>
 
-                {/* Section 1: AI Company Intelligence Dossier */}
-                <WorkspaceSection
-                  eyebrow="Intelligence Dossier"
-                  title={
-                    researchDone
-                      ? "AI Company Profile & Insights"
-                      : researchRunning
-                        ? "Deep Intelligence Scan Active"
-                        : "Company Intelligence"
+            <WorkspaceSection eyebrow="Contact" title="Contact Intelligence">
+              <ContactPanel
+                lead={lead}
+                researchDone={researchDone}
+                canFindContact={canFindContact}
+                contactFound={contactFound}
+                busy={busy}
+                busyAction={busyAction}
+                onFindContact={handleFindContact}
+              />
+            </WorkspaceSection>
+
+            <WorkspaceSection id="outreach" eyebrow="Outreach" title="Outreach">
+              {canDraft && !showDraftForm && !emailDrafted && !emailApproved && !emailSent ? (
+                <OutreachEmpty onGenerate={() => setShowDraftForm(true)} busy={busy} />
+              ) : null}
+              {!canDraft && !showDraftForm && !emailDrafted && !emailApproved && !emailSent ? (
+                <p className="max-w-xl text-[15px] leading-relaxed text-muted">
+                  Complete research and contact discovery to unlock personalized outreach.
+                </p>
+              ) : null}
+
+              {showDraftForm && canDraft ? (
+                <DraftForm
+                  fields={DRAFT_FORM_FIELDS}
+                  values={draftForm}
+                  onChange={(key, value) =>
+                    setDraftForm((previous) => ({ ...previous, [key]: value }))
                   }
-                >
-                  {researchRunning ? <ResearchRunning /> : null}
-                  {canResearch && !hasIntelligence && !researchRunning ? (
-                    <ResearchPending
-                      state={researchFailed ? "FAILED" : researchPending ? "PENDING" : "NOT_STARTED"}
-                      busy={busy}
-                      busyAction={busyAction}
-                      onResearch={handleResearch}
-                    />
-                  ) : null}
-                  {researchDone && hasIntelligence ? (
-                    <div id="intelligence" className="flex scroll-mt-6 flex-col gap-6">
-                      <Intelligence data={intelligence} />
-                      <Evidence items={evidenceItems} />
-                    </div>
-                  ) : null}
-                  {researchDone && !hasIntelligence ? (
-                    <p className="text-sm leading-relaxed text-slate-400">
-                      Research completed, but no analysis summary is available for this lead.
-                    </p>
-                  ) : null}
-                </WorkspaceSection>
+                  onSubmit={handleDraft}
+                  onCancel={() => setShowDraftForm(false)}
+                  busy={busy}
+                  busyAction={busyAction}
+                />
+              ) : null}
 
-                {/* Section 2: Contact Discovery & Intelligence */}
-                <WorkspaceSection eyebrow="Contact Discovery" title="Verified Business Contacts">
-                  <ContactPanel
-                    lead={lead}
-                    researchDone={researchDone}
-                    canFindContact={canFindContact}
-                    contactFound={contactFound}
-                    busy={busy}
-                    busyAction={busyAction}
-                    onFindContact={handleFindContact}
-                  />
-                </WorkspaceSection>
+              {emailDrafted || emailApproved || emailSent ? (
+                <EmailComposer
+                  lead={lead}
+                  emailDrafted={emailDrafted}
+                  emailApproved={emailApproved}
+                  editingApproved={editingApproved}
+                  emailSent={emailSent}
+                  editSubject={editSubject}
+                  editBody={editBody}
+                  emailDirty={emailDirty}
+                  saveLabel={saveLabel}
+                  saveState={saveState}
+                  busy={busy}
+                  busyAction={busyAction}
+                  personalizationCount={personalizationCount}
+                  onEditSubject={handleEditSubject}
+                  onEditBody={handleEditBody}
+                  onSave={handleSaveDraft}
+                  onDiscard={handleDiscardEdits}
+                  onApprove={handleApprove}
+                  onEditApproved={() => setEditingApproved(true)}
+                  onSendClick={() => setShowSendConfirm(true)}
+                />
+              ) : null}
 
-                {/* Section 3: Cold Outreach & AI Email Studio */}
-                <WorkspaceSection id="outreach" eyebrow="Outreach Studio" title="Personalized Email Campaign">
-                  {canDraft && !showDraftForm && !emailDrafted && !emailApproved && !emailSent ? (
-                    <OutreachEmpty onGenerate={() => setShowDraftForm(true)} busy={busy} />
-                  ) : null}
-                  {!canDraft && !showDraftForm && !emailDrafted && !emailApproved && !emailSent ? (
-                    <p className="text-sm leading-relaxed text-slate-400">
-                      Complete company intelligence and contact discovery above to unlock personalized outreach.
-                    </p>
-                  ) : null}
-
-                  {showDraftForm && canDraft ? (
-                    <DraftForm
-                      fields={DRAFT_FORM_FIELDS}
-                      values={draftForm}
-                      onChange={(key, value) =>
-                        setDraftForm((previous) => ({ ...previous, [key]: value }))
-                      }
-                      onSubmit={handleDraft}
-                      onCancel={() => setShowDraftForm(false)}
-                      busy={busy}
-                      busyAction={busyAction}
-                    />
-                  ) : null}
-
-                  {emailDrafted || emailApproved || emailSent ? (
-                    <EmailComposer
-                      lead={lead}
-                      emailDrafted={emailDrafted}
-                      emailApproved={emailApproved}
-                      editingApproved={editingApproved}
-                      emailSent={emailSent}
-                      editSubject={editSubject}
-                      editBody={editBody}
-                      emailDirty={emailDirty}
-                      saveLabel={saveLabel}
-                      saveState={saveState}
-                      busy={busy}
-                      busyAction={busyAction}
-                      personalizationCount={personalizationCount}
-                      onEditSubject={handleEditSubject}
-                      onEditBody={handleEditBody}
-                      onSave={handleSaveDraft}
-                      onDiscard={handleDiscardEdits}
-                      onApprove={handleApprove}
-                      onEditApproved={() => setEditingApproved(true)}
-                      onSendClick={() => setShowSendConfirm(true)}
-                    />
-                  ) : null}
-                </WorkspaceSection>
+            </WorkspaceSection>
               </div>
-
-              {/* Sidebar Rail */}
-              <aside className="flex min-w-0 flex-col gap-6">
-                <StatusPanel lead={lead} />
-                <SidebarMeta lead={lead} />
+              <aside className="order-1 flex min-w-0 flex-col gap-8 lg:order-2">
+                <div className="order-1 lg:order-2">
+                  <NextAction {...actionProps} variant="sidebar" />
+                </div>
+                <div className="order-2 border-t border-line pt-8 lg:order-1 lg:border-t-0 lg:pt-0">
+                  <StatusPanel lead={lead} />
+                </div>
+                <div className="order-3 border-t border-line pt-8">
+                  <SidebarMeta lead={lead} />
+                </div>
               </aside>
             </div>
           </div>
         ) : null}
       </main>
 
-      {/* Confirmation Modal */}
       {showSendConfirm && lead ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-5 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-5"
           role="dialog"
           aria-modal="true"
           aria-labelledby="send-confirm-title"
@@ -704,31 +667,33 @@ export default function LeadDetailPage() {
           }}
         >
           <div
-            className="glass-panel-elevated w-full max-w-md rounded-2xl border border-white/15 p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl border border-line bg-surface p-6"
             onClick={(event) => event.stopPropagation()}
           >
-            <h2 id="send-confirm-title" className="text-xl font-bold tracking-tight text-white">
+            <h2 id="send-confirm-title" className="text-xl font-bold tracking-tight">
               Send this email?
             </h2>
-            <dl className="mt-4 flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-xs">
+            <dl className="mt-4 flex flex-col gap-3 text-sm">
               <div>
-                <dt className="text-slate-400">Recipient</dt>
-                <dd className="mt-0.5 font-semibold text-white">{lead.contact_email ?? "—"}</dd>
+                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">To</dt>
+                <dd className="mt-1 font-semibold">{lead.contact_email ?? "—"}</dd>
               </div>
-              <div className="border-t border-slate-800 pt-2">
-                <dt className="text-slate-400">Subject</dt>
-                <dd className="mt-0.5 text-slate-300">{lead.email_subject ?? "—"}</dd>
+              <div>
+                <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+                  Subject
+                </dt>
+                <dd className="mt-1">{lead.email_subject ?? "—"}</dd>
               </div>
             </dl>
-            <p className="mt-4 text-xs text-slate-400">
-              This action triggers your n8n workflow to dispatch the approved email.
+            <p className="mt-4 text-sm text-muted">
+              This action will send the approved email to the contact.
             </p>
-            <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => setShowSendConfirm(false)}
                 disabled={busy}
-                className="btn-secondary rounded-xl px-4 py-2 text-xs font-semibold"
+                className="btn-secondary"
               >
                 Cancel
               </button>
@@ -736,9 +701,9 @@ export default function LeadDetailPage() {
                 type="button"
                 onClick={handleSend}
                 disabled={busy}
-                className="btn-primary rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-2 text-xs font-semibold shadow-emerald-500/20"
+                className="btn-primary"
               >
-                {busyAction === "send" ? "Sending…" : "Send Email Now"}
+                {busyAction === "send" ? "Sending…" : "Send Email"}
               </button>
             </div>
           </div>

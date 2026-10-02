@@ -1,7 +1,4 @@
-"use client";
-
 import type { ReactNode } from "react";
-import { Search, ChevronDown, RotateCcw, SlidersHorizontal } from "lucide-react";
 
 export type LeadStatusFilter = "all" | "NEW" | "Contacted" | "Replied" | "Converted";
 
@@ -21,7 +18,7 @@ export type LeadSortKey = "newest" | "oldest" | "name-asc" | "name-desc" | "rati
 
 export const STATUS_OPTIONS: { value: LeadStatusFilter; label: string }[] = [
   { value: "all", label: "All statuses" },
-  { value: "NEW", label: "New leads" },
+  { value: "NEW", label: "New" },
   { value: "Contacted", label: "Contacted" },
   { value: "Replied", label: "Replied" },
   { value: "Converted", label: "Converted" },
@@ -36,7 +33,7 @@ export const RESEARCH_OPTIONS: { value: LeadResearchFilter; label: string }[] = 
 ];
 
 export const EMAIL_OPTIONS: { value: LeadEmailFilter; label: string }[] = [
-  { value: "all", label: "All email status" },
+  { value: "all", label: "All email" },
   { value: "NOT_STARTED", label: "Not started" },
   { value: "DRAFTED", label: "Drafted" },
   { value: "APPROVED", label: "Approved" },
@@ -45,18 +42,18 @@ export const EMAIL_OPTIONS: { value: LeadEmailFilter; label: string }[] = [
 ];
 
 export const CONTACT_OPTIONS: { value: LeadContactFilter; label: string }[] = [
-  { value: "all", label: "All contacts" },
+  { value: "all", label: "All contact" },
   { value: "NOT_STARTED", label: "Not searched" },
-  { value: "FOUND", label: "Verified email" },
-  { value: "NOT_FOUND", label: "Email not found" },
+  { value: "FOUND", label: "Found" },
+  { value: "NOT_FOUND", label: "Not found" },
   { value: "INVALID", label: "Invalid" },
 ];
 
 export const SORT_OPTIONS: { value: LeadSortKey; label: string }[] = [
-  { value: "newest", label: "Newest first" },
-  { value: "oldest", label: "Oldest first" },
-  { value: "name-asc", label: "Name (A–Z)" },
-  { value: "name-desc", label: "Name (Z–A)" },
+  { value: "newest", label: "Newest" },
+  { value: "oldest", label: "Oldest" },
+  { value: "name-asc", label: "Business name A–Z" },
+  { value: "name-desc", label: "Business name Z–A" },
   { value: "rating", label: "Highest rating" },
   { value: "reviews", label: "Most reviews" },
 ];
@@ -98,6 +95,28 @@ function isSortKey(value: string): value is LeadSortKey {
   return SORT_OPTIONS.some((option) => option.value === value);
 }
 
+function Chevron() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      focusable="false"
+      className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+    >
+      <path
+        d="M4 6.2 8 10.2 12 6.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ToolbarSelect({
   id,
   label,
@@ -123,13 +142,13 @@ function ToolbarSelect({
         name={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`h-10 w-full appearance-none truncate rounded-xl border bg-slate-900/80 py-2 pl-3 pr-8 text-xs font-medium text-slate-200 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 hover:border-slate-700 ${
-          active ? "border-indigo-500/60 bg-indigo-950/20 text-indigo-300" : "border-slate-800"
+        className={`min-h-11 w-full appearance-none truncate rounded-xl border bg-field py-2 pl-3 pr-9 text-sm hover:border-line-strong ${
+          active ? "border-primary font-semibold text-ink" : "border-line text-muted"
         }`}
       >
         {children}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+      <Chevron />
     </div>
   );
 }
@@ -151,25 +170,34 @@ export function LeadFilters({
   hasActiveFilters,
 }: LeadFiltersProps) {
   return (
-    <div className="glass-panel flex flex-col gap-3 rounded-2xl border border-white/10 p-4">
+    <div className="flex flex-col gap-3">
       <div className="relative">
         <label htmlFor="lead-search" className="sr-only">
           Search companies
         </label>
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+          focusable="false"
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+        >
+          <circle cx="7" cy="7" r="4.8" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M10.8 10.8 14.2 14.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
         <input
           id="lead-search"
           name="search"
           type="search"
           value={search}
-          placeholder="Search by company name, category, or area..."
+          placeholder="Search companies..."
           autoComplete="off"
           spellCheck={false}
           onChange={(event) => onSearchChange(event.target.value)}
-          className="h-11 w-full rounded-xl border border-slate-800 bg-slate-900/60 py-2 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 transition-all focus:border-indigo-500 focus:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="min-h-11 w-full rounded-xl border border-line bg-field py-2 pl-10 pr-4 text-sm text-ink placeholder:text-muted hover:border-line-strong"
         />
       </div>
-
       <div className="flex flex-wrap items-center gap-2">
         <ToolbarSelect
           id="lead-status"
@@ -188,7 +216,6 @@ export function LeadFilters({
             </option>
           ))}
         </ToolbarSelect>
-
         <ToolbarSelect
           id="lead-research"
           label="Filter by research status"
@@ -206,25 +233,6 @@ export function LeadFilters({
             </option>
           ))}
         </ToolbarSelect>
-
-        <ToolbarSelect
-          id="lead-contact"
-          label="Filter by contact status"
-          value={contact}
-          active={contact !== "all"}
-          onChange={(value) => {
-            if (isContactFilter(value)) {
-              onContactChange(value);
-            }
-          }}
-        >
-          {CONTACT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </ToolbarSelect>
-
         <ToolbarSelect
           id="lead-email"
           label="Filter by email status"
@@ -242,7 +250,23 @@ export function LeadFilters({
             </option>
           ))}
         </ToolbarSelect>
-
+        <ToolbarSelect
+          id="lead-contact"
+          label="Filter by contact email status"
+          value={contact}
+          active={contact !== "all"}
+          onChange={(value) => {
+            if (isContactFilter(value)) {
+              onContactChange(value);
+            }
+          }}
+        >
+          {CONTACT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </ToolbarSelect>
         <ToolbarSelect
           id="lead-sort"
           label="Sort leads"
@@ -259,15 +283,13 @@ export function LeadFilters({
             </option>
           ))}
         </ToolbarSelect>
-
         {hasActiveFilters ? (
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/20"
+            className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-primary underline-offset-4 hover:underline"
           >
-            <RotateCcw className="h-3 w-3" />
-            <span>Reset</span>
+            Reset
           </button>
         ) : null}
       </div>

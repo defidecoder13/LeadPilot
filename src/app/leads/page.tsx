@@ -2,17 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  Sparkles,
-  RefreshCw,
-  Plus,
-  Trash2,
-  Building2,
-  AlertCircle,
-  CheckCircle2,
-  Layers,
-  ArrowRight,
-} from "lucide-react";
 import { getLeads } from "@/lib/leadDiscovery";
 import type { Lead, LeadsResponse } from "@/lib/leadDiscovery";
 import { deleteAllLeads, deleteLeads, triggerResearch } from "@/lib/leadPilot";
@@ -388,216 +377,254 @@ export default function LeadsPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-8 py-6">
-      {/* Top Floating Glass Navigation Header */}
-      <header className="glass-panel mb-8 flex items-center justify-between rounded-2xl border border-white/10 px-5 py-4">
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <span className="block text-base font-bold text-white tracking-tight">LeadPilot</span>
-            <span className="block text-xs text-slate-400">Prospect Intelligence</span>
-          </div>
+    <div className="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-5 sm:px-8 lg:px-12">
+      <header className="flex items-center justify-between gap-6 border-b border-line py-6 sm:py-7">
+        <Link href="/" className="flex min-h-11 items-center gap-3 rounded-xl">
+          <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+            <rect width="36" height="36" rx="11" fill="var(--primary)" />
+            <path
+              d="M11 24.5c4.5 0 5-6.5 9.5-6.5H25"
+              fill="none"
+              stroke="var(--on-primary)"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            />
+            <circle cx="11" cy="24.5" r="2.1" fill="var(--on-primary)" />
+            <circle cx="25" cy="18" r="2.1" fill="var(--on-primary)" />
+            <circle cx="25" cy="11.2" r="1.6" fill="var(--on-primary)" opacity="0.72" />
+          </svg>
+          <span>
+            <span className="block text-lg font-bold leading-tight tracking-tight">LeadPilot</span>
+            <span className="block text-sm leading-snug text-muted">AI lead intelligence</span>
+          </span>
         </Link>
-        <div className="flex items-center gap-3">
+        <nav aria-label="Primary">
           <Link
             href="/"
-            className="btn-primary inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold shadow-md shadow-indigo-500/20"
+            className="inline-flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted hover:border-line-strong hover:text-ink"
           >
-            <Plus className="h-3.5 w-3.5" />
-            <span>Discover Leads</span>
+            Discover Leads
           </Link>
-        </div>
+        </nav>
       </header>
 
-      <main className="w-full flex flex-col gap-8" aria-busy={loading || undefined}>
-        {/* Title and Top Command Bar */}
+      <main className="w-full py-10 sm:py-14" aria-busy={loading || undefined}>
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
-                Database Pipeline
-              </span>
-            </div>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Prospect Directory
-            </h1>
-            <p className="mt-1 text-sm text-slate-400">
+          <div className="max-w-xl">
+            <h1 className="text-3xl font-bold tracking-[-0.02em] sm:text-4xl">Leads</h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
+              Your prospect pipeline. Discover, research, and prepare personalized outreach.
+            </p>
+            <p className="mt-1 text-sm text-muted" role="status">
               {loading
-                ? "Synchronizing pipeline data…"
-                : `${visibleCount} ${visibleCount === 1 ? "lead" : "leads"} displayed across your automated workflow.`}
+                ? "Loading leads…"
+                : `${visibleCount} ${visibleCount === 1 ? "lead" : "leads"} found`}
+              {!loading && visibleCount !== count ? (
+                <span>
+                  {" "}
+                  · {count} {count === 1 ? "lead" : "leads"} total
+                </span>
+              ) : null}
             </p>
           </div>
-
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/"
+              className="btn-primary"
+            >
+              + Discover leads
+            </Link>
             <button
               type="button"
               onClick={handleRefresh}
               disabled={loading}
-              className="btn-secondary inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold"
+              className="btn-secondary"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-indigo-400" : ""}`} />
-              <span>{loading ? "Refreshing…" : "Sync Leads"}</span>
+              {loading ? "Refreshing…" : "Refresh"}
             </button>
           </div>
         </div>
 
-        {/* Bento Metric Cards & Filter Dock */}
         {!loading && status === "success" ? (
           <LeadPipeline counts={stageCounts} active={activeStage()} onSelect={applyStage} />
         ) : null}
 
-        {/* Loading Skeleton */}
         {loading ? (
-          <div className="mt-2" role="status" aria-label="Loading your leads">
-            <LeadSkeleton />
+          <div className="mt-6 animate-pulse" aria-hidden="true">
+            <div className="h-4 w-44 rounded-md bg-line" />
+            <div className="mt-3 h-11 rounded-xl border border-line bg-surface" />
           </div>
         ) : null}
 
-        {/* Error State */}
-        {status === "error" ? (
-          <div className="glass-panel flex flex-col items-center justify-center rounded-2xl border border-rose-500/25 p-12 text-center" role="alert">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400">
-              <AlertCircle className="h-6 w-6" />
-            </div>
-            <h2 className="mt-4 text-lg font-bold text-white">Pipeline Connection Issue</h2>
-            <p className="mt-1 max-w-sm text-sm text-slate-400">
-              We couldn&apos;t load your leads from the Neon database. Please verify your connection.
-            </p>
+        {status === "success" && leads.length > 0 ? (
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+            {selectedCount === 0 ? (
+              <button
+                type="button"
+                onClick={allVisibleSelected ? clearSelection : selectAllVisible}
+                className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-bold text-muted hover:text-ink"
+              >
+                {allVisibleSelected ? "✓ All selected" : "Select all"}
+              </button>
+            ) : (
+              <>
+                <p role="status" className="text-sm font-bold text-ink">
+                  {selectedCount} {selectedCount === 1 ? "lead" : "leads"} selected
+                </p>
+                <button
+                  type="button"
+                  onClick={clearSelection}
+                  className="inline-flex min-h-11 items-center rounded-xl px-2 text-sm font-bold text-muted hover:text-ink"
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkResearch}
+                  disabled={bulkResearching || deleting !== null}
+                  className="btn-secondary"
+                >
+                  {bulkResearching ? "Researching…" : "Research selected"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteError(null);
+                    setDeleteDialog({ mode: "selected" });
+                  }}
+                  disabled={deleting !== null}
+                  className="btn-destructive"
+                >
+                  Delete selected
+                </button>
+              </>
+            )}
             <button
               type="button"
-              onClick={handleRefresh}
-              className="btn-primary mt-6 rounded-xl px-5 py-2 text-xs font-semibold"
+              onClick={() => {
+                setDeleteError(null);
+                setDeleteDialog({ mode: "all" });
+              }}
+              disabled={deleting !== null}
+              className="btn-destructive-ghost sm:ml-auto"
             >
-              Retry Connection
+              Delete All Leads
             </button>
           </div>
         ) : null}
 
-        {/* Empty State */}
-        {status === "success" && leads.length === 0 ? (
-          <div className="glass-panel flex flex-col items-center justify-center rounded-2xl border border-white/10 p-12 text-center" role="status">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400">
-              <Building2 className="h-7 w-7" />
+        <div className="mt-8">
+          {status === "loading" ? (
+            <div className="mt-8" role="status" aria-label="Loading your leads">
+              <LeadSkeleton />
             </div>
-            <h2 className="mt-4 text-xl font-bold text-white">No prospects discovered yet</h2>
-            <p className="mt-2 max-w-md text-sm text-slate-400">
-              Launch a Google Places lead discovery query to find targeted businesses, run deep research, and draft personalized outreach.
-            </p>
-            <Link href="/" className="btn-primary mt-6 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold">
-              <Plus className="h-4 w-4" />
-              <span>Discover Your First Leads</span>
-            </Link>
-          </div>
-        ) : null}
+          ) : null}
 
-        {/* Filters and Search Bar */}
-        {status === "success" && leads.length > 0 ? (
-          <LeadFilters
-            search={search}
-            onSearchChange={setSearch}
-            status={statusFilter}
-            onStatusChange={setStatusFilter}
-            research={researchFilter}
-            onResearchChange={setResearchFilter}
-            email={emailFilter}
-            onEmailChange={setEmailFilter}
-            contact={contactFilter}
-            onContactChange={setContactFilter}
-            sort={sortKey}
-            onSortChange={setSortKey}
-            onReset={resetFilters}
-            hasActiveFilters={hasActiveFilters}
-          />
-        ) : null}
-
-        {/* Floating Batch Action Dock */}
-        {status === "success" && leads.length > 0 ? (
-          <div className="glass-panel flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={allVisibleSelected ? clearSelection : selectAllVisible}
-                className="btn-secondary rounded-lg px-3 py-1.5 text-xs font-semibold"
-              >
-                {allVisibleSelected ? "Deselect All" : "Select All"}
-              </button>
-
-              {selectedCount > 0 ? (
-                <span className="rounded-md bg-indigo-500/20 px-2 py-0.5 text-xs font-semibold text-indigo-300">
-                  {selectedCount} selected
-                </span>
-              ) : null}
+          {status === "error" ? (
+            <div className="status-card" data-tone="error" role="alert">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+                <path d="M10 6.4v4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="10" cy="13.7" r="1.1" fill="currentColor" />
+              </svg>
+              <div>
+                <p className="text-sm font-bold leading-snug">Something went wrong</p>
+                <p className="mt-1 text-sm leading-snug">
+                  We couldn&apos;t load your leads. Your lead data is safe.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleRefresh}
+                  className="primary-action mt-4 max-w-52"
+                >
+                  Try Again
+                </button>
+              </div>
             </div>
+          ) : null}
 
-            <div className="flex items-center gap-2">
-              {selectedCount > 0 ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleBulkResearch}
-                    disabled={bulkResearching || deleting !== null}
-                    className="btn-primary rounded-lg px-3 py-1.5 text-xs font-semibold"
-                  >
-                    {bulkResearching ? "Researching…" : `Research (${selectedCount})`}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDeleteError(null);
-                      setDeleteDialog({ mode: "selected" });
-                    }}
-                    disabled={deleting !== null}
-                    className="btn-destructive rounded-lg px-3 py-1.5 text-xs font-semibold"
-                  >
-                    Delete Selected
-                  </button>
-                </>
-              ) : null}
-
-              <button
-                type="button"
-                onClick={() => {
-                  setDeleteError(null);
-                  setDeleteDialog({ mode: "all" });
-                }}
-                disabled={deleting !== null}
-                className="btn-destructive-ghost text-xs text-rose-400 hover:text-rose-300"
-              >
-                Delete All
-              </button>
+          {status === "success" && leads.length === 0 ? (
+            <div className="status-card" role="status">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+                <circle cx="9" cy="9" r="5.8" stroke="currentColor" strokeWidth="2" />
+                <path
+                  d="M13.6 13.6 17.8 17.8"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div>
+                <p className="text-lg font-bold tracking-tight">No prospects yet</p>
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
+                  Discover businesses and let LeadPilot research them and prepare
+                  personalized outreach.
+                </p>
+                <Link href="/" className="primary-action mt-5 max-w-64">
+                  + Discover your first leads
+                </Link>
+              </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        {/* No Filter Results */}
-        {status === "success" && leads.length > 0 && visibleLeads.length === 0 ? (
-          <div className="glass-panel rounded-2xl border border-white/10 p-8 text-center" role="status">
-            <p className="text-base font-bold text-white">No matching prospects found</p>
-            <p className="mt-1 text-xs text-slate-400">
-              Try adjusting your search criteria or resetting filters.
-            </p>
-          </div>
-        ) : null}
+          {status === "success" && leads.length > 0 ? (
+            <div>
+              <LeadFilters
+                search={search}
+                onSearchChange={setSearch}
+                status={statusFilter}
+                onStatusChange={setStatusFilter}
+                research={researchFilter}
+                onResearchChange={setResearchFilter}
+                email={emailFilter}
+                onEmailChange={setEmailFilter}
+                contact={contactFilter}
+                onContactChange={setContactFilter}
+                sort={sortKey}
+                onSortChange={setSortKey}
+                onReset={resetFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+            </div>
+          ) : null}
 
-        {/* Lead List Cards Grid */}
-        {status === "success" && visibleLeads.length > 0 ? (
-          <LeadList
-            leads={visibleLeads}
-            selectedIds={selectedIds}
-            onToggleSelect={toggleSelect}
-            onResearch={handleCardResearch}
-            researchingIds={researchingIds}
-          />
-        ) : null}
+          {status === "success" && leads.length > 0 && visibleLeads.length === 0 ? (
+            <div className="status-card mt-8" role="status">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
+                <circle cx="9" cy="9" r="5.8" stroke="currentColor" strokeWidth="2" />
+                <path
+                  d="M13.6 13.6 17.8 17.8"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div>
+                <p className="text-sm font-bold leading-snug">No matching leads</p>
+                <p className="mt-1 text-sm leading-snug text-muted">
+                  Try changing your search or filters.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {status === "success" && visibleLeads.length > 0 ? (
+            <div className="mt-6">
+              <LeadList
+                leads={visibleLeads}
+                selectedIds={selectedIds}
+                onToggleSelect={toggleSelect}
+                onResearch={handleCardResearch}
+                researchingIds={researchingIds}
+              />
+            </div>
+          ) : null}
+        </div>
       </main>
 
-      {/* Delete Confirmation Modal */}
       {deleteDialog ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-5 backdrop-blur-md"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-5"
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-dialog-title"
@@ -608,38 +635,47 @@ export default function LeadsPage() {
           }}
         >
           <div
-            className="glass-panel-elevated w-full max-w-md rounded-2xl border border-white/15 p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl border border-line bg-surface p-6"
             onClick={(event) => event.stopPropagation()}
           >
-            <h2 id="delete-dialog-title" className="text-xl font-bold tracking-tight text-white">
+            <h2 id="delete-dialog-title" className="text-xl font-bold tracking-tight">
               {deleteDialog.mode === "all"
-                ? "Delete all stored leads?"
-                : `Delete ${selectedCount} selected ${selectedCount === 1 ? "lead" : "leads"}?`}
+                ? "Delete all leads?"
+                : `Delete ${selectedCount} ${selectedCount === 1 ? "lead" : "leads"}?`}
             </h2>
-            <div className="mt-3 text-xs leading-relaxed text-slate-400">
-              {deleteDialog.mode === "all" ? (
+            {deleteDialog.mode === "all" ? (
+              <div className="mt-4 text-sm leading-relaxed text-muted">
                 <p>
-                  This permanently removes all leads, company intelligence, contact discovery data, and email drafts from your Neon database. This action cannot be undone.
+                  This will permanently delete all leads currently stored in LeadPilot,
+                  including:
                 </p>
-              ) : (
-                <p>
-                  This will remove the selected leads and their associated research and email drafts.
-                </p>
-              )}
-            </div>
-
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  <li>business information</li>
+                  <li>research data</li>
+                  <li>contact email data</li>
+                  <li>email drafts</li>
+                  <li>approval state</li>
+                  <li>sent state metadata</li>
+                </ul>
+                <p className="mt-2 font-semibold text-ink">This action cannot be undone.</p>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm leading-relaxed text-muted">
+                This will permanently remove the selected leads and all stored
+                research/email/contact data associated with them.
+              </p>
+            )}
             {deleteError ? (
-              <p role="alert" className="mt-3 text-xs font-semibold text-rose-400">
+              <p role="alert" className="mt-4 text-sm font-medium leading-snug text-danger">
                 {deleteError}
               </p>
             ) : null}
-
-            <div className="mt-6 flex flex-wrap justify-end gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => setDeleteDialog(null)}
                 disabled={deleting !== null}
-                className="btn-secondary rounded-xl px-4 py-2 text-xs font-semibold"
+                className="btn-secondary"
               >
                 Cancel
               </button>
@@ -647,13 +683,13 @@ export default function LeadsPage() {
                 type="button"
                 onClick={() => runDelete(deleteDialog.mode)}
                 disabled={deleting !== null}
-                className="btn-destructive-solid rounded-xl px-5 py-2 text-xs font-semibold"
+                className="btn-destructive-solid"
               >
                 {deleting !== null
                   ? "Deleting…"
                   : deleteDialog.mode === "all"
                     ? "Delete All Leads"
-                    : "Confirm Deletion"}
+                    : "Delete Leads"}
               </button>
             </div>
           </div>
