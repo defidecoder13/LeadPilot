@@ -42,7 +42,7 @@ export function CountrySelect({ id, value, onChange, onBlur, invalid, describedB
         className="input-control select-control"
       >
         {COUNTRY_OPTIONS.map((country) => (
-          <option key={country} value={country}>
+          <option key={country} value={country} className="bg-slate-900 text-white">
             {country}
           </option>
         ))}

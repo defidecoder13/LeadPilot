@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
+    "lucide-react": "^1.49.0",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"
