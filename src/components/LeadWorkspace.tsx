@@ -140,62 +140,36 @@ export function WorkspacePipeline({ lead }: { lead: Lead }) {
   ];
 
   return (
-    <div className="rounded-2xl border border-line bg-surface/80 p-3 sm:p-4 shadow-xs backdrop-blur-xs">
-      <div className="flex items-center justify-between gap-4 mb-3 px-1">
-        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
-          Outreach Workflow
-        </span>
-        <span className="text-xs font-medium text-muted">
-          5-Stage Pipeline
-        </span>
-      </div>
+    <div className="flex items-center justify-between gap-1 overflow-x-auto rounded-xl border border-line bg-surface px-4 py-2.5 shadow-xs">
+      {stages.map((stage, index) => {
+        const isOk = stage.state.tone === "ok";
+        const isActive = stage.state.tone === "active" || stage.state.tone === "progress";
 
-      <ol
-        aria-label="Lead pipeline workflow"
-        className="grid grid-cols-2 gap-2 sm:grid-cols-5 sm:gap-2.5"
-      >
-        {stages.map((stage) => {
-          const isOk = stage.state.tone === "ok";
-          const isActive = stage.state.tone === "active" || stage.state.tone === "progress";
-          const isBad = stage.state.tone === "bad";
-
-          return (
-            <li
-              key={stage.name}
-              className={`flex flex-col gap-1.5 rounded-xl border p-2.5 transition-all ${
+        return (
+          <div key={stage.name} className="flex items-center gap-1.5 shrink-0">
+            {index > 0 && (
+              <span className="text-muted/30 font-light mx-2">›</span>
+            )}
+            <span
+              className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
                 isOk
-                  ? "border-emerald-200 bg-emerald-50/60 text-emerald-900"
+                  ? "bg-emerald-600 text-white"
                   : isActive
-                    ? "border-primary bg-primary/5 text-primary shadow-xs"
-                    : isBad
-                      ? "border-red-200 bg-red-50/60 text-red-900"
-                      : "border-line bg-canvas/40 text-muted"
+                    ? "bg-primary text-white"
+                    : "bg-canvas border border-line text-muted"
               }`}
             >
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">
-                  Step {stage.num}
-                </span>
-                <span
-                  className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${
-                    isOk
-                      ? "bg-emerald-600 text-white"
-                      : isActive
-                        ? "bg-primary text-white animate-pulse"
-                        : "bg-line text-muted"
-                  }`}
-                >
-                  {isOk ? "✓" : stage.num}
-                </span>
-              </div>
-              <p className="text-xs font-bold text-ink truncate">{stage.name}</p>
-              <p className={`text-[11px] font-semibold truncate ${toneText(stage.state.tone)}`}>
-                {stage.state.label}
-              </p>
-            </li>
-          );
-        })}
-      </ol>
+              {isOk ? "✓" : stage.num}
+            </span>
+            <span className={`text-xs ${isActive ? "font-bold text-ink" : isOk ? "font-medium text-ink" : "text-muted"}`}>
+              {stage.name}
+            </span>
+            <span className={`text-[10px] ${isOk ? "text-emerald-700 font-semibold" : isActive ? "text-primary font-bold" : "text-muted"}`}>
+              ({stage.state.label})
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -222,16 +196,19 @@ export type NextActionProps = {
 
 export function NextAction(props: NextActionProps) {
   const { lead, variant } = props;
+  if (variant === "sidebar") {
+    return null;
+  }
+
   const researchDone = lead.research_status === "COMPLETED";
 
   let control: React.ReactNode = null;
-  let hint: string | null = null;
 
   if (props.emailSent) {
     control = (
-      <p className="inline-flex items-center gap-2 text-sm font-bold text-[var(--success-ink)]">
+      <span className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-800">
         <span aria-hidden="true">✓</span> Email sent
-      </p>
+      </span>
     );
   } else if (props.emailApproved) {
     control = (
@@ -239,25 +216,23 @@ export function NextAction(props: NextActionProps) {
         type="button"
         onClick={props.onSendClick}
         disabled={props.busy}
-        className="primary-action w-full max-w-64"
+        className="btn-primary h-10 px-5 text-xs font-bold shadow-sm whitespace-nowrap bg-emerald-600 hover:bg-emerald-700"
       >
         Send Email →
       </button>
     );
-    hint = "Approved and ready to send.";
   } else if (props.emailDrafted) {
     control = (
       <Link
         href="#outreach"
-        className="primary-action w-full max-w-64"
+        className="btn-primary h-10 px-5 text-xs font-bold shadow-sm whitespace-nowrap"
       >
-        Review Email →
+        Review Draft →
       </Link>
     );
-    hint = "A draft is waiting for review.";
   } else if (props.showDraftForm && props.canDraft) {
     control = (
-      <p className="text-sm font-semibold text-muted">Draft in progress — complete the form below.</p>
+      <span className="text-xs font-semibold text-muted">Drafting below…</span>
     );
   } else if (props.canDraft) {
     control = (
@@ -265,73 +240,53 @@ export function NextAction(props: NextActionProps) {
         type="button"
         onClick={props.onGenerate}
         disabled={props.busy}
-        className="primary-action w-full max-w-64"
+        className="btn-primary h-10 px-5 text-xs font-bold shadow-sm whitespace-nowrap"
       >
         Generate Email →
       </button>
     );
-    hint = "Turn research into outreach.";
   } else if (props.canFindContact) {
     control = (
       <button
         type="button"
         onClick={props.onFindContact}
         disabled={props.busy}
-        className="primary-action w-full max-w-64"
+        className="btn-primary h-10 px-5 text-xs font-bold shadow-sm whitespace-nowrap"
       >
         {props.busyAction === "contact" ? "Finding contact…" : "Find Contact →"}
       </button>
     );
-    hint = "Discover a contact email.";
   } else if (props.researchRunning) {
     control = (
-      <p className="inline-flex items-center gap-2 text-sm font-bold text-[var(--focus)]" role="status">
-        <span aria-hidden="true">◌</span> Researching…
-      </p>
+      <div className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-primary/20 bg-primary/5 text-xs font-bold text-primary">
+        <span className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        Researching…
+      </div>
     );
-    hint = "This page refreshes automatically.";
   } else if (props.canResearch) {
     control = (
       <button
         type="button"
         onClick={props.onResearch}
         disabled={props.busy}
-        className="primary-action w-full max-w-64"
+        className="btn-primary h-10 px-5 text-xs font-bold shadow-sm whitespace-nowrap"
       >
         {props.busyAction === "research" ? "Researching…" : "Research Company →"}
       </button>
     );
-    hint = "Start gathering intelligence.";
   } else if (researchDone) {
     control = (
-      <p className="inline-flex items-center gap-2 text-sm font-bold text-[var(--success-ink)]">
+      <span className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-800">
         <span aria-hidden="true">✓</span> Research completed
-      </p>
+      </span>
     );
   } else {
     control = (
-      <p className="text-sm font-semibold text-muted">You&apos;re all caught up.</p>
+      <span className="text-xs font-semibold text-muted">All caught up</span>
     );
   }
 
-  if (variant === "header") {
-    return <div className="flex flex-wrap items-center gap-3">{control}</div>;
-  }
-  return (
-    <section aria-labelledby="next-action-heading" className="rounded-2xl border border-primary/20 bg-primary/5 p-5 shadow-xs">
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <h2
-          id="next-action-heading"
-          className="text-[10px] font-extrabold uppercase tracking-wider text-primary"
-        >
-          Recommended Action
-        </h2>
-        <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-      </div>
-      {control}
-      {hint ? <p className="mt-2 text-xs leading-relaxed text-muted">{hint}</p> : null}
-    </section>
-  );
+  return <div className="flex items-center gap-3">{control}</div>;
 }
 
 export function StatusPanel({ lead }: { lead: Lead }) {
@@ -698,45 +653,28 @@ export function ContactPanel(props: ContactPanelProps) {
       ) : null}
 
       {!props.researchDone ? (
-        <div className="rounded-2xl border border-line bg-canvas/40 p-5 flex items-center gap-3.5">
-          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-line bg-surface text-muted">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="rounded-2xl border border-line bg-canvas/30 p-4 flex items-center gap-3 text-xs text-muted">
+          <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg border border-line bg-surface text-muted">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
-          </div>
-          <div>
-            <p className="text-sm font-bold text-ink">Contact Discovery Locked</p>
-            <p className="mt-0.5 text-xs text-muted">Complete Step 1 (Company Intelligence) above to extract decision-maker emails.</p>
-          </div>
+          </span>
+          <span>Contact discovery unlocks after AI company research completes.</span>
         </div>
       ) : null}
 
       {props.canFindContact ? (
-        <div className="rounded-2xl border border-line bg-gradient-to-b from-surface to-canvas/40 p-6 shadow-xs">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3.5">
-              <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                  <polyline points="22,6 12,13 2,6" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-ink">Find Verified Decision-Maker Email</h3>
-                <p className="mt-0.5 text-xs text-muted">
-                  LeadPilot will scan online directories, domain records, and public channels for verified contact emails.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={props.onFindContact}
-              disabled={props.busy}
-              className="primary-action shrink-0 px-6 sm:w-auto"
-            >
-              {props.busyAction === "contact" ? "Finding contact…" : "Find Contact →"}
-            </button>
+        <div className="rounded-2xl border border-line bg-canvas/30 p-5 flex items-center gap-3.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-ink">Decision-Maker Contact Discovery Ready</p>
+            <p className="mt-0.5 text-xs text-muted">Click <strong>Find Contact</strong> in the header above to search verified email directories.</p>
           </div>
         </div>
       ) : null}
@@ -746,51 +684,18 @@ export function ContactPanel(props: ContactPanelProps) {
 
 export function OutreachEmpty({ onGenerate, busy }: { onGenerate: () => void; busy: boolean }) {
   return (
-    <div className="rounded-2xl border border-line bg-gradient-to-b from-surface to-canvas/40 p-6 sm:p-7 shadow-xs">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3.5">
-          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 19l7-7 3 3-7 7-3-3z" />
-              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
-              <path d="M2 2l7.586 7.586" />
-              <circle cx="11" cy="11" r="2" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-ink">Generate Personalized Outreach</h3>
-            <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted">
-              Combine extracted company insights, services, and your unique offer into a tailored cold email draft.
-            </p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onGenerate}
-          disabled={busy}
-          className="primary-action shrink-0 px-6 sm:w-auto"
-        >
-          Generate Email →
-        </button>
+    <div className="rounded-2xl border border-line bg-canvas/30 p-5 flex items-center gap-3.5">
+      <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 19l7-7 3 3-7 7-3-3z" />
+          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+          <path d="M2 2l7.586 7.586" />
+          <circle cx="11" cy="11" r="2" />
+        </svg>
       </div>
-
-      <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-4 border-t border-line/80 pt-4 text-xs font-semibold text-muted">
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          Company Insights
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          Decision-Maker Context
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          Tailored Pitch Angle
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          Clear Call-to-Action
-        </div>
+      <div>
+        <p className="text-sm font-bold text-ink">Personalized Outreach Ready</p>
+        <p className="mt-0.5 text-xs text-muted">Click <strong>Generate Email</strong> in the header above to craft a tailored message from research insights.</p>
       </div>
     </div>
   );
@@ -854,7 +759,7 @@ export function DraftForm(props: DraftFormProps) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">{sender.map(renderField)}</div>
       </div>
       <div className="flex flex-wrap gap-3">
-        <button type="submit" disabled={props.busy} className="primary-action max-w-64">
+        <button type="submit" disabled={props.busy} className="btn-primary h-10 px-6 text-xs font-bold shadow-sm">
           {props.busyAction === "draft" ? "Generating personalized email…" : "Generate Email →"}
         </button>
         <button
@@ -966,7 +871,7 @@ export function EmailComposer(props: ComposerProps) {
                 type="button"
                 onClick={props.onSave}
                 disabled={props.busy || props.saveState === "saving" || !props.emailDirty}
-                className="primary-action max-w-64"
+                className="btn-primary h-10 px-5 text-xs font-bold shadow-sm"
               >
                 {props.saveLabel}
               </button>
@@ -1021,7 +926,7 @@ export function EmailComposer(props: ComposerProps) {
                 type="button"
                 onClick={props.onApprove}
                 disabled={props.busy || props.emailDirty}
-                className="primary-action max-w-64"
+                className="btn-primary h-10 px-5 text-xs font-bold shadow-sm"
               >
                 {props.busyAction === "approve" ? "Approving email…" : "Approve Email"}
               </button>
@@ -1030,33 +935,22 @@ export function EmailComposer(props: ComposerProps) {
         ) : null}
         {props.emailApproved && !props.editingApproved ? (
           <div className="flex flex-col gap-3 border-t border-line pt-5">
-            <p className="inline-flex items-center gap-2 text-sm font-bold text-[var(--success-ink)]">
-              <span aria-hidden="true">✓</span> Approved
-            </p>
-            <p className="text-sm text-muted">
-              This email is ready to send to {props.lead.contact_email ?? "the contact"}.
-            </p>
-            <p className="text-sm">
-              <span className="font-semibold">To:</span> {props.lead.contact_email ?? "—"}
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={props.onSendClick}
-                disabled={props.busy}
-                className="primary-action max-w-64"
-              >
-                Send Email →
-              </button>
+            <div className="flex items-center justify-between">
+              <p className="inline-flex items-center gap-2 text-sm font-bold text-[var(--success-ink)]">
+                <span aria-hidden="true">✓</span> Approved and ready to send
+              </p>
               <button
                 type="button"
                 onClick={props.onEditApproved}
                 disabled={props.busy}
-                className="btn-secondary"
+                className="btn-secondary h-8 px-3 text-xs font-bold"
               >
                 Edit Email
               </button>
             </div>
+            <p className="text-xs text-muted">
+              Click <strong>Send Email</strong> in the header above to dispatch this message to <span className="font-semibold text-ink">{props.lead.contact_email ?? "the contact"}</span>.
+            </p>
           </div>
         ) : null}
         {props.emailSent ? (
@@ -1074,60 +968,50 @@ export function EmailComposer(props: ComposerProps) {
 
 export function ResearchPending({
   state,
-  busy,
-  busyAction,
-  onResearch,
 }: {
   state: "NOT_STARTED" | "PENDING" | "FAILED";
-  busy: boolean;
-  busyAction: string | null;
-  onResearch: () => void;
+  busy?: boolean;
+  busyAction?: string | null;
+  onResearch?: () => void;
 }) {
   const isFailed = state === "FAILED";
 
   return (
-    <div className="rounded-2xl border border-line bg-gradient-to-b from-surface to-canvas/40 p-6 sm:p-7 shadow-xs">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3.5">
-          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-ink">
-              {isFailed ? "Research Incomplete" : "Launch AI Company Research"}
-            </h3>
-            <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted">
-              {isFailed
-                ? "The previous research attempt didn't complete. Click below to retry extracting company intelligence."
-                : "LeadPilot will crawl the company's online presence, discover services, target demographics, reviews, and prepare key outreach angles."}
-            </p>
-          </div>
+    <div className="rounded-2xl border border-line bg-canvas/30 p-6 shadow-xs">
+      <div className="flex items-start gap-4">
+        <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+          </svg>
         </div>
-
-        <button
-          type="button"
-          onClick={onResearch}
-          disabled={busy}
-          className="primary-action shrink-0 px-6 sm:w-auto"
-        >
-          {busyAction === "research" ? "Researching company…" : "Research Company →"}
-        </button>
+        <div>
+          <h3 className="text-base font-bold text-ink">
+            {isFailed ? "Research Incomplete" : "Launch AI Company Research"}
+          </h3>
+          <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted">
+            {isFailed
+              ? "The previous research attempt didn't complete. Click the Research Company button in the header above to retry."
+              : "LeadPilot will crawl the company's online presence, discover services, target demographics, reviews, and prepare key outreach angles."}
+          </p>
+        </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-3 border-t border-line/80 pt-4 text-xs font-semibold text-muted">
+      <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4 border-t border-line/60 pt-4 text-xs font-semibold text-muted">
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
-          <span>Products & Services</span>
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
+          <span>Core Offerings</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
-          <span>Target Audience & Value</span>
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
+          <span>Target Audience</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
-          <span>Outreach Personalization</span>
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
+          <span>Differentiators</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
+          <span>Outreach Hooks</span>
         </div>
       </div>
     </div>
@@ -1307,5 +1191,38 @@ export function WorkspaceSection({
       </div>
       <div className="pt-2">{children}</div>
     </section>
+  );
+}
+
+export function LockedSection({
+  step,
+  title,
+  reason,
+}: {
+  step: string;
+  title: string;
+  reason: string;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-line/70 bg-surface/50 px-5 py-4 text-xs shadow-xs backdrop-blur-xs">
+      <div className="flex items-center gap-3">
+        <span className="flex h-8 w-8 flex-none items-center justify-center rounded-xl border border-line bg-canvas text-muted">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </span>
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-extrabold uppercase tracking-wider text-muted text-[10px]">{step}</span>
+            <span className="font-bold text-ink/80">{title}</span>
+          </div>
+          <p className="mt-0.5 text-muted">{reason}</p>
+        </div>
+      </div>
+      <span className="rounded-lg bg-canvas border border-line px-2 py-0.5 font-bold uppercase tracking-wider text-[10px] text-muted">
+        Locked
+      </span>
+    </div>
   );
 }

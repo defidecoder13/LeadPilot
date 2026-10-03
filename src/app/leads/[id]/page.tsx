@@ -10,6 +10,7 @@ import {
   EmailComposer,
   Evidence,
   Intelligence,
+  LockedSection,
   NextAction,
   NoticeBanner,
   OutreachEmpty,
@@ -571,82 +572,83 @@ export default function LeadDetailPage() {
                   ) : null}
                 </WorkspaceSection>
 
-                <WorkspaceSection eyebrow="Step 2 · Contact" title="Contact Intelligence">
-                  <ContactPanel
-                    lead={lead}
-                    researchDone={researchDone}
-                    canFindContact={canFindContact}
-                    contactFound={contactFound}
-                    busy={busy}
-                    busyAction={busyAction}
-                    onFindContact={handleFindContact}
-                  />
-                </WorkspaceSection>
-
-                <WorkspaceSection id="outreach" eyebrow="Step 3 · Outreach" title="Personalized Outreach">
-                  {canDraft && !showDraftForm && !emailDrafted && !emailApproved && !emailSent ? (
-                    <OutreachEmpty onGenerate={() => setShowDraftForm(true)} busy={busy} />
-                  ) : null}
-                  {!canDraft && !showDraftForm && !emailDrafted && !emailApproved && !emailSent ? (
-                    <div className="rounded-2xl border border-line bg-canvas/40 p-5 flex items-center gap-3.5">
-                      <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-line bg-surface text-muted">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-ink">Personalized Outreach Locked</p>
-                        <p className="mt-0.5 text-xs text-muted">Complete company research and contact discovery above to unlock automated cold drafting.</p>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {showDraftForm && canDraft ? (
-                    <DraftForm
-                      fields={DRAFT_FORM_FIELDS}
-                      values={draftForm}
-                      onChange={(key, value) =>
-                        setDraftForm((previous) => ({ ...previous, [key]: value }))
-                      }
-                      onSubmit={handleDraft}
-                      onCancel={() => setShowDraftForm(false)}
-                      busy={busy}
-                      busyAction={busyAction}
-                    />
-                  ) : null}
-
-                  {emailDrafted || emailApproved || emailSent ? (
-                    <EmailComposer
+                {researchDone ? (
+                  <WorkspaceSection eyebrow="Step 2 · Contact" title="Contact Intelligence">
+                    <ContactPanel
                       lead={lead}
-                      emailDrafted={emailDrafted}
-                      emailApproved={emailApproved}
-                      editingApproved={editingApproved}
-                      emailSent={emailSent}
-                      editSubject={editSubject}
-                      editBody={editBody}
-                      emailDirty={emailDirty}
-                      saveLabel={saveLabel}
-                      saveState={saveState}
+                      researchDone={researchDone}
+                      canFindContact={canFindContact}
+                      contactFound={contactFound}
                       busy={busy}
                       busyAction={busyAction}
-                      personalizationCount={personalizationCount}
-                      onEditSubject={handleEditSubject}
-                      onEditBody={handleEditBody}
-                      onSave={handleSaveDraft}
-                      onDiscard={handleDiscardEdits}
-                      onApprove={handleApprove}
-                      onEditApproved={() => setEditingApproved(true)}
-                      onSendClick={() => setShowSendConfirm(true)}
+                      onFindContact={handleFindContact}
                     />
-                  ) : null}
-                </WorkspaceSection>
+                  </WorkspaceSection>
+                ) : (
+                  <LockedSection
+                    step="Step 2"
+                    title="Contact Intelligence"
+                    reason="Unlocks after AI company research completes"
+                  />
+                )}
+
+                {canDraft || showDraftForm || emailDrafted || emailApproved || emailSent ? (
+                  <WorkspaceSection id="outreach" eyebrow="Step 3 · Outreach" title="Personalized Outreach">
+                    {canDraft && !showDraftForm && !emailDrafted && !emailApproved && !emailSent ? (
+                      <OutreachEmpty onGenerate={() => setShowDraftForm(true)} busy={busy} />
+                    ) : null}
+
+                    {showDraftForm && canDraft ? (
+                      <DraftForm
+                        fields={DRAFT_FORM_FIELDS}
+                        values={draftForm}
+                        onChange={(key, value) =>
+                          setDraftForm((previous) => ({ ...previous, [key]: value }))
+                        }
+                        onSubmit={handleDraft}
+                        onCancel={() => setShowDraftForm(false)}
+                        busy={busy}
+                        busyAction={busyAction}
+                      />
+                    ) : null}
+
+                    {emailDrafted || emailApproved || emailSent ? (
+                      <EmailComposer
+                        lead={lead}
+                        emailDrafted={emailDrafted}
+                        emailApproved={emailApproved}
+                        editingApproved={editingApproved}
+                        emailSent={emailSent}
+                        editSubject={editSubject}
+                        editBody={editBody}
+                        emailDirty={emailDirty}
+                        saveLabel={saveLabel}
+                        saveState={saveState}
+                        busy={busy}
+                        busyAction={busyAction}
+                        personalizationCount={personalizationCount}
+                        onEditSubject={handleEditSubject}
+                        onEditBody={handleEditBody}
+                        onSave={handleSaveDraft}
+                        onDiscard={handleDiscardEdits}
+                        onApprove={handleApprove}
+                        onEditApproved={() => setEditingApproved(true)}
+                        onSendClick={() => setShowSendConfirm(true)}
+                      />
+                    ) : null}
+                  </WorkspaceSection>
+                ) : (
+                  <LockedSection
+                    step="Step 3"
+                    title="Personalized Outreach"
+                    reason="Unlocks after contact discovery completes"
+                  />
+                )}
               </div>
 
               <aside className="order-2 flex min-w-0 flex-col gap-6 lg:order-2">
                 <StatusPanel lead={lead} />
                 <SidebarMeta lead={lead} />
-                <NextAction {...actionProps} variant="sidebar" />
               </aside>
             </div>
           </div>
