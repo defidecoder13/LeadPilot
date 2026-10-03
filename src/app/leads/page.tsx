@@ -398,14 +398,12 @@ export default function LeadsPage() {
             <span className="block text-sm leading-snug text-muted">AI lead intelligence</span>
           </span>
         </Link>
-        <nav aria-label="Primary">
-          <Link
-            href="/"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted hover:border-line-strong hover:text-ink transition-colors"
-          >
-            <span>+ Discover Leads</span>
-          </Link>
-        </nav>
+        <div className="flex items-center gap-2">
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+            Prospect Pipeline
+          </span>
+        </div>
       </header>
 
       <main className="w-full py-8 sm:py-12" aria-busy={loading || undefined}>
@@ -427,20 +425,22 @@ export default function LeadsPage() {
               Prospect Pipeline
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
-              Discover, research company intelligence, and prepare personalized outbound campaigns.
+              Track, research, and outreach to discovered business leads.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/"
-              className="btn-primary shadow-sm hover:shadow transition-shadow"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Discover Leads
-            </Link>
+            {!loading && leads.length > 0 ? (
+              <Link
+                href="/"
+                className="btn-primary shadow-sm hover:shadow transition-shadow"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Discover Leads
+              </Link>
+            ) : null}
             <button
               type="button"
               onClick={handleRefresh}
@@ -574,7 +574,7 @@ export default function LeadsPage() {
                 <button
                   type="button"
                   onClick={handleRefresh}
-                  className="primary-action mt-4 max-w-52"
+                  className="btn-primary mt-4 max-w-52 h-10 px-5 text-xs font-bold"
                 >
                   Try Again
                 </button>
@@ -599,7 +599,7 @@ export default function LeadsPage() {
                 Your Prospect Pipeline is Empty
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-                Discover businesses in any category and city. LeadPilot will automatically collect verified company information, conduct AI research, find contact emails, and craft personalized outreach drafts.
+                Search businesses in any category and city. LeadPilot will automatically collect verified company information, conduct AI research, find contact emails, and craft personalized outreach drafts.
               </p>
 
               {/* 3-Step Pipeline Flow Preview */}
@@ -608,9 +608,9 @@ export default function LeadsPage() {
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary text-sm font-bold">
                     1
                   </div>
-                  <h3 className="mt-3 text-sm font-bold text-ink">Discover Leads</h3>
+                  <h3 className="mt-3 text-sm font-bold text-ink">Find Businesses</h3>
                   <p className="mt-1 text-xs leading-relaxed text-muted">
-                    Search any industry & city to find qualified local businesses.
+                    Search any industry & city to find qualified local prospects.
                   </p>
                 </div>
 
@@ -639,12 +639,12 @@ export default function LeadsPage() {
               <div className="mt-10 flex flex-col items-center justify-center gap-3">
                 <Link
                   href="/"
-                  className="primary-action max-w-xs px-8 text-base shadow-lg hover:shadow-xl transition-all"
+                  className="btn-primary h-12 px-8 text-sm font-bold shadow-md hover:shadow-lg transition-all"
                 >
-                  <span>+ Discover Your First Leads</span>
-                  <span aria-hidden="true">→</span>
+                  <span>Start Lead Discovery</span>
+                  <span aria-hidden="true" className="ml-1">→</span>
                 </Link>
-                <p className="text-xs text-muted mt-1">
+                <p className="text-xs text-muted mt-0.5">
                   Instant automated prospect discovery & enrichment
                 </p>
               </div>
