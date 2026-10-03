@@ -508,7 +508,7 @@ export default function LeadDetailPage() {
             <p className="mt-2 text-sm text-muted">
               This lead does not exist in your LeadPilot database.
             </p>
-            <Link href="/leads" className="primary-action mt-6 max-w-xs mx-auto">
+            <Link href="/leads" className="btn-primary mt-6 inline-flex h-10 px-6 text-xs font-bold shadow-sm">
               ← Return to Leads
             </Link>
           </div>
@@ -523,7 +523,7 @@ export default function LeadDetailPage() {
             <button
               type="button"
               onClick={handleRetry}
-              className="primary-action mt-5 max-w-xs mx-auto text-xs py-2.5"
+              className="btn-primary mt-5 inline-flex h-10 px-6 text-xs font-bold shadow-sm"
             >
               Try Again
             </button>
@@ -595,7 +595,7 @@ export default function LeadDetailPage() {
                 {canDraft || showDraftForm || emailDrafted || emailApproved || emailSent ? (
                   <WorkspaceSection id="outreach" eyebrow="Step 3 · Outreach" title="Personalized Outreach">
                     {canDraft && !showDraftForm && !emailDrafted && !emailApproved && !emailSent ? (
-                      <OutreachEmpty onGenerate={() => setShowDraftForm(true)} busy={busy} />
+                      <OutreachEmpty />
                     ) : null}
 
                     {showDraftForm && canDraft ? (

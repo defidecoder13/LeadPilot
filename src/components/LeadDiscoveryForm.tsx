@@ -372,13 +372,13 @@ export function LeadDiscoveryForm() {
               <button
                 type="button"
                 onClick={() => setShowSuccessDialog(false)}
-                className="btn-secondary w-full sm:w-auto px-5"
+                className="btn-secondary h-11 px-5 text-xs font-bold w-full sm:w-auto"
               >
                 Close
               </button>
               <Link
                 href="/leads"
-                className="primary-action w-full sm:w-auto px-6"
+                className="btn-primary h-11 px-6 text-xs font-bold shadow-sm w-full sm:w-auto"
               >
                 <span>View Leads</span>
                 <span aria-hidden="true">→</span>

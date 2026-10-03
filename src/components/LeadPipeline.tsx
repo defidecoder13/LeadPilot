@@ -41,7 +41,7 @@ export function LeadPipeline({ counts, active, onSelect }: LeadPipelineProps) {
       </div>
 
       <div
-        className="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-line bg-surface/80 p-1.5 shadow-xs backdrop-blur-xs"
+        className="flex items-center gap-1.5 overflow-x-auto no-scrollbar rounded-2xl border border-line bg-surface/80 p-1.5 shadow-xs backdrop-blur-xs"
         role="group"
         aria-label="Filter leads by pipeline stage"
       >

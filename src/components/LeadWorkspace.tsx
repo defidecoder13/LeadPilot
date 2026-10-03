@@ -5,38 +5,6 @@ import type { DraftEmailInput } from "@/lib/leadPilot";
 
 type Tone = "ok" | "active" | "progress" | "idle" | "bad";
 
-function toneColor(tone: Tone): string {
-  if (tone === "ok") {
-    return "var(--success-ink)";
-  }
-  if (tone === "active") {
-    return "var(--primary)";
-  }
-  if (tone === "progress") {
-    return "var(--focus)";
-  }
-  if (tone === "bad") {
-    return "var(--danger)";
-  }
-  return "var(--line-strong)";
-}
-
-function toneText(tone: Tone): string {
-  if (tone === "ok") {
-    return "text-[var(--success-ink)]";
-  }
-  if (tone === "active") {
-    return "text-primary";
-  }
-  if (tone === "progress") {
-    return "text-[var(--focus)]";
-  }
-  if (tone === "bad") {
-    return "text-danger";
-  }
-  return "text-muted";
-}
-
 export type StageState = { label: string; glyph: string; tone: Tone };
 
 export function researchStage(lead: Lead): StageState {
@@ -140,7 +108,7 @@ export function WorkspacePipeline({ lead }: { lead: Lead }) {
   ];
 
   return (
-    <div className="flex items-center justify-between gap-1 overflow-x-auto rounded-xl border border-line bg-surface px-4 py-2.5 shadow-xs">
+    <div className="flex items-center justify-between gap-1 overflow-x-auto no-scrollbar rounded-xl border border-line bg-surface px-4 py-2.5 shadow-xs">
       {stages.map((stage, index) => {
         const isOk = stage.state.tone === "ok";
         const isActive = stage.state.tone === "active" || stage.state.tone === "progress";
@@ -682,7 +650,7 @@ export function ContactPanel(props: ContactPanelProps) {
   );
 }
 
-export function OutreachEmpty({ onGenerate, busy }: { onGenerate: () => void; busy: boolean }) {
+export function OutreachEmpty() {
   return (
     <div className="rounded-2xl border border-line bg-canvas/30 p-5 flex items-center gap-3.5">
       <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">

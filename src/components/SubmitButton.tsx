@@ -15,7 +15,12 @@ export function SubmitButton({ status }: SubmitButtonProps) {
   const submitting = status === "submitting";
 
   return (
-    <button type="submit" disabled={submitting} aria-busy={submitting || undefined} className="primary-action">
+    <button
+      type="submit"
+      disabled={submitting}
+      aria-busy={submitting || undefined}
+      className="btn-primary w-full h-12 text-sm font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+    >
       {submitting ? (
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false" className="h-5 w-5 animate-spin">
           <circle cx="10" cy="10" r="8" stroke="currentColor" strokeOpacity="0.3" strokeWidth="2" />

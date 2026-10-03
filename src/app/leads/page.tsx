@@ -231,7 +231,6 @@ export default function LeadsPage() {
     return [...filtered].sort(compareLeads(sortKey));
   }, [leads, search, statusFilter, researchFilter, emailFilter, contactFilter, sortKey]);
 
-  const visibleCount = visibleLeads.length;
   const selectedCount = selectedIds.size;
   const allVisibleSelected =
     visibleLeads.length > 0 && visibleLeads.every((lead) => selectedIds.has(lead.id));

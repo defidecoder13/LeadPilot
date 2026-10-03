@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-5 sm:px-8 lg:px-12">
       <header className="flex items-center justify-between gap-6 border-b border-line py-6 sm:py-7">
-        <a href="#lead-discovery" className="flex min-h-11 items-center gap-3 rounded-xl">
+        <Link href="/" className="flex min-h-11 items-center gap-3 rounded-xl">
           <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
             <rect width="36" height="36" rx="11" fill="var(--primary)" />
             <path
@@ -21,22 +21,18 @@ export default function Home() {
           </svg>
           <span>
             <span className="block text-lg font-bold leading-tight tracking-tight">LeadPilot</span>
-            <span className="block text-sm leading-snug text-muted">AI-powered lead discovery</span>
+            <span className="block text-sm leading-snug text-muted">AI lead intelligence</span>
           </span>
-        </a>
-        <div className="flex items-center gap-3">
-          <nav aria-label="Primary">
-            <Link
-              href="/leads"
-              className="inline-flex min-h-11 items-center rounded-full border border-line bg-surface px-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted hover:border-line-strong hover:text-ink"
-            >
-              Your Leads
-            </Link>
-          </nav>
-          <p className="hidden rounded-full border border-line bg-surface px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted sm:block">
-            Discovery request
-          </p>
-        </div>
+        </Link>
+        <nav aria-label="Primary" className="flex items-center gap-2.5">
+          <Link
+            href="/leads"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted hover:border-line-strong hover:text-ink transition-colors"
+          >
+            <span>Prospect Pipeline</span>
+            <span aria-hidden="true">→</span>
+          </Link>
+        </nav>
       </header>
 
       <main className="flex flex-1 items-center">
