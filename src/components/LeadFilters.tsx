@@ -133,7 +133,7 @@ function ToolbarSelect({
   active?: boolean;
 }) {
   return (
-    <div className="relative min-w-0 flex-1 basis-36">
+    <div className="relative min-w-0 flex-1 basis-40">
       <label htmlFor={id} className="sr-only">
         {label}
       </label>
@@ -142,8 +142,10 @@ function ToolbarSelect({
         name={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`min-h-11 w-full appearance-none truncate rounded-xl border bg-field py-2 pl-3 pr-9 text-sm hover:border-line-strong ${
-          active ? "border-primary font-semibold text-ink" : "border-line text-muted"
+        className={`h-10 w-full appearance-none truncate rounded-xl border py-1.5 pl-3.5 pr-9 text-xs transition-colors hover:border-line-strong cursor-pointer ${
+          active
+            ? "border-primary bg-primary/5 font-bold text-primary shadow-xs"
+            : "border-line bg-surface text-ink font-medium"
         }`}
       >
         {children}
@@ -170,8 +172,8 @@ export function LeadFilters({
   hasActiveFilters,
 }: LeadFiltersProps) {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="relative">
+    <div className="flex flex-col gap-3 mt-6">
+      <div className="relative flex items-center">
         <label htmlFor="lead-search" className="sr-only">
           Search companies
         </label>
@@ -181,7 +183,7 @@ export function LeadFilters({
           viewBox="0 0 16 16"
           aria-hidden="true"
           focusable="false"
-          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
         >
           <circle cx="7" cy="7" r="4.8" fill="none" stroke="currentColor" strokeWidth="1.6" />
           <path d="M10.8 10.8 14.2 14.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -191,13 +193,27 @@ export function LeadFilters({
           name="search"
           type="search"
           value={search}
-          placeholder="Search companies..."
+          placeholder="Search by company name, category, location, phone, or email..."
           autoComplete="off"
           spellCheck={false}
           onChange={(event) => onSearchChange(event.target.value)}
-          className="min-h-11 w-full rounded-xl border border-line bg-field py-2 pl-10 pr-4 text-sm text-ink placeholder:text-muted hover:border-line-strong"
+          className="h-11 w-full rounded-2xl border border-line bg-surface py-2 pl-10 pr-10 text-sm text-ink placeholder:text-muted/80 shadow-xs transition-all hover:border-line-strong focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
         />
+        {search ? (
+          <button
+            type="button"
+            onClick={() => onSearchChange("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted hover:bg-canvas hover:text-ink transition-colors"
+            aria-label="Clear search"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        ) : null}
       </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <ToolbarSelect
           id="lead-status"
@@ -287,8 +303,12 @@ export function LeadFilters({
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-primary underline-offset-4 hover:underline"
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-line bg-canvas px-3.5 text-xs font-bold text-muted hover:border-line-strong hover:text-ink transition-colors"
           >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
             Reset
           </button>
         ) : null}

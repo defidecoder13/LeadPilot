@@ -29,95 +29,119 @@ function formatLocality(address: string): string {
   return address.trim();
 }
 
-function ResearchState({ value }: { value: string }) {
+function ResearchBadge({ value }: { value: string }) {
   const normalized = value.trim().toUpperCase();
-  let glyph = "○";
-  let label = "Not started";
-  let tone = "var(--line-strong)";
   if (normalized === "IN_PROGRESS") {
-    glyph = "◌";
-    label = "Researching";
-    tone = "var(--focus)";
-  } else if (normalized === "COMPLETED") {
-    glyph = "✓";
-    label = "Completed";
-    tone = "var(--success-ink)";
-  } else if (normalized === "FAILED") {
-    glyph = "!";
-    label = "Failed";
-    tone = "var(--danger)";
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+        <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse" />
+        Researching
+      </span>
+    );
+  }
+  if (normalized === "COMPLETED") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        Researched
+      </span>
+    );
+  }
+  if (normalized === "FAILED") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700">
+        Failed
+      </span>
+    );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted">
-      <span aria-hidden="true" style={{ color: tone }}>
-        {glyph}
-      </span>
-      {label}
+    <span className="inline-flex items-center gap-1 rounded-full border border-line bg-canvas px-2 py-0.5 text-[11px] font-medium text-muted">
+      Not started
     </span>
   );
 }
 
-function ContactState({ value }: { value: string }) {
+function ContactBadge({ value }: { value: string }) {
   const normalized = value.trim().toUpperCase();
-  let glyph = "○";
-  let label = "Not searched";
-  let tone = "var(--line-strong)";
   if (normalized === "FOUND") {
-    glyph = "✓";
-    label = "Found";
-    tone = "var(--success-ink)";
-  } else if (normalized === "NOT_FOUND") {
-    label = "Not found";
-  } else if (normalized === "INVALID") {
-    glyph = "!";
-    label = "Invalid";
-    tone = "var(--danger)";
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+          <polyline points="22,6 12,13 2,6" />
+        </svg>
+        Email found
+      </span>
+    );
+  }
+  if (normalized === "NOT_FOUND") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-line bg-canvas px-2 py-0.5 text-[11px] font-medium text-muted">
+        No email
+      </span>
+    );
+  }
+  if (normalized === "INVALID") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700">
+        Invalid
+      </span>
+    );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted">
-      <span aria-hidden="true" style={{ color: tone }}>
-        {glyph}
-      </span>
-      {label}
+    <span className="inline-flex items-center gap-1 rounded-full border border-line bg-canvas px-2 py-0.5 text-[11px] font-medium text-muted">
+      Unchecked
     </span>
   );
 }
 
-function OutreachState({ value }: { value: string }) {
+function OutreachBadge({ value }: { value: string }) {
   const normalized = value.trim().toUpperCase();
-  let glyph = "○";
-  let label = "Not ready";
-  let tone = "var(--line-strong)";
+  if (normalized === "SENT") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        Sent
+      </span>
+    );
+  }
+  if (normalized === "APPROVED") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
+        Approved
+      </span>
+    );
+  }
   if (normalized === "DRAFTED") {
-    glyph = "●";
-    label = "Drafted";
-    tone = "var(--primary)";
-  } else if (normalized === "APPROVED") {
-    glyph = "●";
-    label = "Approved";
-    tone = "var(--primary)";
-  } else if (normalized === "SENT") {
-    glyph = "✓";
-    label = "Sent";
-    tone = "var(--success-ink)";
-  } else if (normalized === "FAILED") {
-    glyph = "!";
-    label = "Failed";
-    tone = "var(--danger)";
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-2 py-0.5 text-[11px] font-semibold text-purple-800">
+        <span className="h-1.5 w-1.5 rounded-full bg-purple-600" />
+        Drafted
+      </span>
+    );
+  }
+  if (normalized === "FAILED") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700">
+        Failed
+      </span>
+    );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted">
-      <span aria-hidden="true" style={{ color: tone }}>
-        {glyph}
-      </span>
-      {label}
+    <span className="inline-flex items-center gap-1 rounded-full border border-line bg-canvas px-2 py-0.5 text-[11px] font-medium text-muted">
+      No draft
     </span>
   );
 }
 
 function PinIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" className="mt-0.5 flex-none">
+    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" className="mt-0.5 flex-none text-muted">
       <path
         d="M8 14.5S3.5 9.6 3.5 6.3a4.5 4.5 0 0 1 9 0c0 3.3-4.5 8.2-4.5 8.2Z"
         fill="none"
@@ -131,14 +155,8 @@ function PinIcon() {
 
 function StarIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false" className="mt-0.5 flex-none">
-      <path
-        d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6L8 1.8Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" className="text-amber-500">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
   );
 }
@@ -157,6 +175,8 @@ export function LeadCard({ lead, selected, onToggleSelect, onResearch, researchi
   const address = lead.address.trim();
   const locality = address ? formatLocality(address) : "";
   const [actionError, setActionError] = useState<string | null>(null);
+
+  const initial = lead.business_name.trim().charAt(0).toUpperCase() || "B";
 
   let primaryAction = "Research Company";
   if (lead.email_status === "SENT") {
@@ -188,12 +208,14 @@ export function LeadCard({ lead, selected, onToggleSelect, onResearch, researchi
   }
 
   return (
-    <article className="relative flex h-full cursor-pointer flex-col rounded-2xl border border-line bg-surface p-5 transition-colors duration-150 hover:border-line-strong sm:p-6">
+    <article className="group relative flex h-full cursor-pointer flex-col rounded-2xl border border-line bg-surface p-5 sm:p-6 shadow-xs hover:border-line-strong hover:shadow-md transition-all duration-200">
       <Link
         href={`/leads/${lead.id}`}
         aria-label={`Open ${lead.business_name}`}
         className="absolute inset-0 rounded-2xl"
       />
+
+      {/* Top row: Checkbox, Avatar, Name, Status */}
       <div className="flex items-start gap-3">
         <input
           type="checkbox"
@@ -201,76 +223,91 @@ export function LeadCard({ lead, selected, onToggleSelect, onResearch, researchi
           onChange={() => onToggleSelect(lead.id)}
           aria-label={`Select ${lead.business_name}`}
           style={{ accentColor: "var(--primary)" }}
-          className="relative z-10 mt-1 h-5 w-5 shrink-0 cursor-pointer"
+          className="relative z-10 mt-1 h-5 w-5 shrink-0 cursor-pointer rounded"
         />
+
+        <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-line bg-canvas text-base font-extrabold text-ink transition-colors group-hover:border-primary/30 group-hover:text-primary">
+          {initial}
+        </div>
+
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h2 className="min-w-0 flex-1 truncate text-lg font-semibold tracking-tight">
+            <h2 className="min-w-0 flex-1 truncate text-base font-bold tracking-tight text-ink group-hover:text-primary transition-colors">
               {lead.business_name}
             </h2>
             {lead.lead_status === "NEW" ? (
-              <span className="inline-flex flex-none items-center gap-1.5 text-xs font-semibold text-muted">
+              <span className="inline-flex flex-none items-center gap-1.5 rounded-full border border-[var(--primary-deep)]/20 bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">
                 New
-                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--primary)" }} />
+                <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
               </span>
             ) : null}
           </div>
           {lead.category.trim() ? (
-            <p className="mt-0.5 truncate text-sm text-muted">{lead.category}</p>
+            <p className="mt-0.5 truncate text-xs font-medium text-muted">
+              {lead.category}
+            </p>
           ) : null}
         </div>
       </div>
 
-      <div className="mt-3 flex flex-col gap-1.5 text-sm text-muted">
+      {/* Locality & Ratings */}
+      <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted">
         {locality ? (
-          <p className="flex items-start gap-2">
+          <p className="flex items-center gap-1.5 truncate max-w-full">
             <PinIcon />
             <span className="truncate">{locality}</span>
           </p>
         ) : null}
-        <p className="flex items-start gap-2">
-          <span className="text-muted">
-            <StarIcon />
-          </span>
-          <span className="text-ink">
+
+        <div className="flex items-center gap-1">
+          <StarIcon />
+          <span className="font-bold text-ink">
             {lead.rating === null ? (
-              "No rating yet"
+              <span className="text-muted font-normal">No rating</span>
             ) : (
               <>
-                <strong className="font-semibold">{lead.rating.toFixed(1)}</strong>
-                {" · "}
-                {lead.review_count.toLocaleString("en-US")} reviews
+                {lead.rating.toFixed(1)}
+                <span className="ml-1 font-normal text-muted">
+                  ({lead.review_count.toLocaleString("en-US")})
+                </span>
               </>
             )}
           </span>
-        </p>
+        </div>
       </div>
 
-      <div className="mb-4 mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-line pt-4">
-        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-          Research
-        </span>
-        <ResearchState value={lead.research_status} />
-        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-          Contact
-        </span>
-        <ContactState value={lead.contact_email_status || "—"} />
-        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
-          Outreach
-        </span>
-        <OutreachState value={lead.email_status} />
+      {/* Pipeline Status Chips */}
+      <div className="my-4 flex flex-wrap items-center gap-2 border-t border-line/80 pt-3.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted/80">Research:</span>
+          <ResearchBadge value={lead.research_status} />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted/80">Contact:</span>
+          <ContactBadge value={lead.contact_email_status || "—"} />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-muted/80">Outreach:</span>
+          <OutreachBadge value={lead.email_status} />
+        </div>
       </div>
 
-      <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 border-t border-line pt-4">
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2">
+      {/* Footer Actions */}
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-line/80 pt-3.5">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           {website ? (
             <a
               href={toExternalUrl(website)}
               target="_blank"
               rel="noopener noreferrer"
-              className="relative z-10 inline-flex min-h-11 max-w-full items-center truncate text-sm font-semibold text-primary underline-offset-4 hover:underline"
+              className="relative z-10 inline-flex items-center gap-1 truncate text-xs font-semibold text-primary hover:underline"
             >
-              {domainOf(website)}
+              <span>{domainOf(website)}</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
             </a>
           ) : null}
           {mapsUrl ? (
@@ -278,39 +315,41 @@ export function LeadCard({ lead, selected, onToggleSelect, onResearch, researchi
               href={mapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="relative z-10 inline-flex min-h-11 items-center text-sm font-semibold text-muted underline-offset-4 hover:text-ink hover:underline"
+              className="relative z-10 inline-flex items-center text-xs font-medium text-muted hover:text-ink hover:underline"
             >
               Maps ↗
             </a>
           ) : null}
         </div>
+
         {primaryAction === "Sent" ? (
           <span
             aria-disabled="true"
-            className="inline-flex min-h-11 cursor-default items-center rounded-xl border border-line px-4 text-sm font-bold text-muted"
+            className="inline-flex h-9 items-center rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 text-xs font-bold text-emerald-800"
           >
-            Sent
+            Sent ✓
           </span>
         ) : primaryAction === "Research Company" ? (
           <button
             type="button"
             onClick={handleResearch}
             disabled={researching}
-            className="btn-secondary relative z-10"
+            className="btn-secondary relative z-10 h-9 px-3.5 text-xs font-bold"
           >
             {researching ? "Researching…" : "Research Company →"}
           </button>
         ) : (
           <Link
             href={`/leads/${lead.id}`}
-            className="btn-secondary relative z-10"
+            className="btn-secondary relative z-10 h-9 px-3.5 text-xs font-bold"
           >
             {primaryAction} →
           </Link>
         )}
       </div>
+
       {actionError ? (
-        <p role="alert" className="mt-3 text-sm font-medium leading-snug text-danger">
+        <p role="alert" className="mt-2 text-xs font-semibold text-danger">
           {actionError}
         </p>
       ) : null}
