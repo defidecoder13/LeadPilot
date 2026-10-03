@@ -166,9 +166,13 @@ p {
   box-shadow: none;
 }
 
-.primary-action svg {
-  width: 1.25rem;
-  height: 1.25rem;
+.primary-action svg,
+.btn-primary svg,
+.btn-secondary svg,
+.btn-destructive svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
 }
 
 .btn-primary {
