@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent, RefObject } from "react";
 import Link from "next/link";
 import { CountrySelect } from "@/components/CountrySelect";
@@ -83,6 +83,17 @@ export function LeadDiscoveryForm() {
   const [status, setStatus] = useState<WorkflowStatusState>("idle");
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+
+  useEffect(() => {
+    if (!showSuccessDialog) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setShowSuccessDialog(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showSuccessDialog]);
   const requestInFlightRef = useRef(false);
   const businessRef = useRef<HTMLInputElement | null>(null);
   const locationRef = useRef<HTMLInputElement | null>(null);
@@ -277,36 +288,101 @@ export function LeadDiscoveryForm() {
       </form>
       {showSuccessDialog ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-5"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 backdrop-blur-sm p-4 sm:p-6 transition-opacity duration-200"
           role="dialog"
           aria-modal="true"
           aria-labelledby="discovery-success-title"
           onClick={() => setShowSuccessDialog(false)}
         >
           <div
-            className="w-full max-w-md rounded-2xl border border-line bg-surface p-6"
+            className="relative w-full max-w-lg rounded-[2rem] border border-line bg-surface p-6 sm:p-8 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] transition-all"
             onClick={(event) => event.stopPropagation()}
           >
-            <p className="text-sm font-bold text-[var(--success-ink)]" aria-hidden="true">
-              ✓
-            </p>
-            <h2 id="discovery-success-title" className="mt-2 text-xl font-bold tracking-tight">
-              Leads generated
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
-              Your search finished and the new leads are ready in your LeadPilot dashboard.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/leads" className="primary-action max-w-64">
-                View Leads →
-              </Link>
+            {/* Top Close (✕) Button */}
+            <button
+              type="button"
+              onClick={() => setShowSuccessDialog(false)}
+              className="absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-canvas hover:text-ink transition-colors"
+              aria-label="Close dialog"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+
+            {/* Header: Icon + Title */}
+            <div className="flex items-start gap-4 pr-8">
+              <div className="flex h-12 w-12 flex-none items-center justify-center rounded-2xl border border-[var(--success-border)] bg-[var(--success-surface)] text-[var(--success-ink)] shadow-sm">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1 pt-0.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 id="discovery-success-title" className="text-xl font-bold tracking-tight text-ink">
+                    Leads Generated
+                  </h2>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--success-border)] bg-[var(--success-surface)] px-2.5 py-0.5 text-xs font-semibold text-[var(--success-ink)]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--success-ink)]" />
+                    Saved
+                  </span>
+                </div>
+                <p className="mt-1 text-sm leading-relaxed text-muted">
+                  Your search finished and the new prospects are ready in your LeadPilot dashboard.
+                </p>
+              </div>
+            </div>
+
+            {/* Search Recap Card */}
+            <div className="mt-6 rounded-2xl border border-line bg-canvas/60 p-4 sm:p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
+                Search Parameters
+              </p>
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted">Business / Category</span>
+                  <span className="mt-0.5 font-semibold text-ink truncate">
+                    {values.business || "—"}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted">Target Location</span>
+                  <span className="mt-0.5 font-semibold text-ink truncate">
+                    {values.location ? `${values.location}, ${values.country}` : values.country}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted">Volume Requested</span>
+                  <span className="mt-0.5 font-semibold text-ink">
+                    {values.limit} {Number(values.limit) === 1 ? "lead" : "leads"}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted">Destination</span>
+                  <span className="mt-0.5 font-semibold text-ink">
+                    Neon Database
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"
                 onClick={() => setShowSuccessDialog(false)}
-                className="btn-secondary"
+                className="btn-secondary w-full sm:w-auto px-5"
               >
                 Close
               </button>
+              <Link
+                href="/leads"
+                className="primary-action w-full sm:w-auto px-6"
+              >
+                <span>View Leads</span>
+                <span aria-hidden="true">→</span>
+              </Link>
             </div>
           </div>
         </div>
