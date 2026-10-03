@@ -127,39 +127,76 @@ function localityOf(address: string): string {
 }
 
 export function WorkspacePipeline({ lead }: { lead: Lead }) {
-  const stages: { name: string; state: StageState }[] = [
-    { name: "Research", state: researchStage(lead) },
-    { name: "Contact", state: contactStage(lead) },
-    { name: "Outreach", state: outreachStage(lead) },
-    { name: "Approval", state: approvalStage(lead) },
-    { name: "Send", state: sendStage(lead) },
+  const stages: {
+    num: number;
+    name: string;
+    state: StageState;
+  }[] = [
+    { num: 1, name: "Research", state: researchStage(lead) },
+    { num: 2, name: "Contact", state: contactStage(lead) },
+    { num: 3, name: "Outreach", state: outreachStage(lead) },
+    { num: 4, name: "Approval", state: approvalStage(lead) },
+    { num: 5, name: "Send", state: sendStage(lead) },
   ];
+
   return (
-    <ol
-      aria-label="Lead pipeline"
-      className="mt-6 flex flex-wrap items-stretch gap-x-2 gap-y-3 border-y border-line py-4"
-    >
-      {stages.map((stage, index) => (
-        <li key={stage.name} className="flex min-w-0 items-stretch">
-          {index > 0 ? (
-            <span aria-hidden="true" className="mx-2 self-center text-xs text-muted">
-              →
-            </span>
-          ) : null}
-          <div className="flex min-w-0 flex-col gap-1">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
-              {stage.name}
-            </span>
-            <span className={`inline-flex items-center gap-1.5 text-sm font-bold ${toneText(stage.state.tone)}`}>
-              <span aria-hidden="true" style={{ color: toneColor(stage.state.tone) }}>
-                {stage.state.glyph}
-              </span>
-              {stage.state.label}
-            </span>
-          </div>
-        </li>
-      ))}
-    </ol>
+    <div className="rounded-2xl border border-line bg-surface/80 p-3 sm:p-4 shadow-xs backdrop-blur-xs">
+      <div className="flex items-center justify-between gap-4 mb-3 px-1">
+        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
+          Outreach Workflow
+        </span>
+        <span className="text-xs font-medium text-muted">
+          5-Stage Pipeline
+        </span>
+      </div>
+
+      <ol
+        aria-label="Lead pipeline workflow"
+        className="grid grid-cols-2 gap-2 sm:grid-cols-5 sm:gap-2.5"
+      >
+        {stages.map((stage) => {
+          const isOk = stage.state.tone === "ok";
+          const isActive = stage.state.tone === "active" || stage.state.tone === "progress";
+          const isBad = stage.state.tone === "bad";
+
+          return (
+            <li
+              key={stage.name}
+              className={`flex flex-col gap-1.5 rounded-xl border p-2.5 transition-all ${
+                isOk
+                  ? "border-emerald-200 bg-emerald-50/60 text-emerald-900"
+                  : isActive
+                    ? "border-primary bg-primary/5 text-primary shadow-xs"
+                    : isBad
+                      ? "border-red-200 bg-red-50/60 text-red-900"
+                      : "border-line bg-canvas/40 text-muted"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">
+                  Step {stage.num}
+                </span>
+                <span
+                  className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${
+                    isOk
+                      ? "bg-emerald-600 text-white"
+                      : isActive
+                        ? "bg-primary text-white animate-pulse"
+                        : "bg-line text-muted"
+                  }`}
+                >
+                  {isOk ? "✓" : stage.num}
+                </span>
+              </div>
+              <p className="text-xs font-bold text-ink truncate">{stage.name}</p>
+              <p className={`text-[11px] font-semibold truncate ${toneText(stage.state.tone)}`}>
+                {stage.state.label}
+              </p>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }
 
@@ -281,86 +318,160 @@ export function NextAction(props: NextActionProps) {
     return <div className="flex flex-wrap items-center gap-3">{control}</div>;
   }
   return (
-    <section aria-labelledby="next-action-heading" className="flex flex-col gap-3">
-      <h2
-        id="next-action-heading"
-        className="text-xs font-semibold uppercase tracking-[0.14em] text-muted"
-      >
-        Next Action
-      </h2>
+    <section aria-labelledby="next-action-heading" className="rounded-2xl border border-primary/20 bg-primary/5 p-5 shadow-xs">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h2
+          id="next-action-heading"
+          className="text-[10px] font-extrabold uppercase tracking-wider text-primary"
+        >
+          Recommended Action
+        </h2>
+        <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+      </div>
       {control}
-      {hint ? <p className="text-sm leading-snug text-muted">{hint}</p> : null}
+      {hint ? <p className="mt-2 text-xs leading-relaxed text-muted">{hint}</p> : null}
     </section>
   );
 }
 
 export function StatusPanel({ lead }: { lead: Lead }) {
-  const rows: { name: string; state: StageState }[] = [
-    { name: "Research", state: researchStage(lead) },
-    { name: "Contact", state: contactStage(lead) },
-    { name: "Outreach", state: outreachStage(lead) },
-    { name: "Approval", state: approvalStage(lead) },
-    { name: "Send", state: sendStage(lead) },
+  const rDone = lead.research_status.trim().toUpperCase() === "COMPLETED";
+  const cDone = lead.contact_email_status.trim().toUpperCase() === "FOUND";
+  const emailStatus = lead.email_status.trim().toUpperCase();
+  const dDone = emailStatus === "DRAFTED" || emailStatus === "APPROVED" || emailStatus === "SENT";
+  const aDone = emailStatus === "APPROVED" || emailStatus === "SENT";
+  const sDone = emailStatus === "SENT";
+
+  const completedCount = [rDone, cDone, dDone, aDone, sDone].filter(Boolean).length;
+  const progressPercent = Math.round((completedCount / 5) * 100);
+
+  const checklist = [
+    { label: "AI Company Research", done: rDone },
+    { label: "Contact Email Discovered", done: cDone },
+    { label: "Outreach Draft Created", done: dDone },
+    { label: "Email Approved", done: aDone },
+    { label: "Outreach Sent", done: sDone },
   ];
+
   return (
-    <section aria-labelledby="lead-status-heading" className="flex flex-col gap-3">
-      <h2
-        id="lead-status-heading"
-        className="text-xs font-semibold uppercase tracking-[0.14em] text-muted"
-      >
-        Lead Status
-      </h2>
-      <dl className="flex flex-col gap-2.5">
-        {rows.map((row) => (
-          <div key={row.name} className="flex items-center justify-between gap-3 text-sm">
-            <dt className="text-muted">{row.name}</dt>
-            <dd className={`inline-flex items-center gap-1.5 font-bold ${toneText(row.state.tone)}`}>
-              <span aria-hidden="true" style={{ color: toneColor(row.state.tone) }}>
-                {row.state.glyph}
-              </span>
-              {row.state.label}
-            </dd>
-          </div>
+    <section aria-labelledby="lead-status-heading" className="rounded-2xl border border-line bg-surface p-5 shadow-xs">
+      <div className="flex items-center justify-between mb-2">
+        <h2
+          id="lead-status-heading"
+          className="text-xs font-bold uppercase tracking-[0.14em] text-muted"
+        >
+          Pipeline Progress
+        </h2>
+        <span className="text-xs font-extrabold text-primary">{progressPercent}%</span>
+      </div>
+
+      <div className="h-1.5 w-full rounded-full bg-canvas border border-line overflow-hidden mb-4">
+        <div
+          className="h-full bg-primary transition-all duration-300"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+
+      <ul className="flex flex-col gap-2.5 text-xs">
+        {checklist.map((item) => (
+          <li key={item.label} className="flex items-center justify-between">
+            <span className={item.done ? "text-ink font-semibold" : "text-muted"}>
+              {item.label}
+            </span>
+            <span
+              className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${
+                item.done
+                  ? "bg-emerald-600 text-white"
+                  : "bg-canvas border border-line text-muted"
+              }`}
+            >
+              {item.done ? "✓" : "○"}
+            </span>
+          </li>
         ))}
-      </dl>
+      </ul>
     </section>
   );
 }
 
 export function SidebarMeta({ lead }: { lead: Lead }) {
   const locality = lead.address.trim() ? localityOf(lead.address) : "";
+  const [copiedPhone, setCopiedPhone] = useState(false);
+
+  function copyPhone() {
+    if (!lead.phone.trim()) return;
+    navigator.clipboard.writeText(lead.phone.trim());
+    setCopiedPhone(true);
+    setTimeout(() => setCopiedPhone(false), 2000);
+  }
+
   return (
-    <section aria-labelledby="lead-meta-heading" className="flex flex-col gap-3">
+    <section aria-labelledby="lead-meta-heading" className="rounded-2xl border border-line bg-surface p-5 shadow-xs">
       <h2
         id="lead-meta-heading"
-        className="text-xs font-semibold uppercase tracking-[0.14em] text-muted"
+        className="text-xs font-bold uppercase tracking-[0.14em] text-muted mb-3.5"
       >
-        Details
+        Company Overview
       </h2>
-      <dl className="flex flex-col gap-2.5 text-sm">
+      <dl className="flex flex-col gap-3 text-xs">
         {lead.phone.trim() ? (
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted">Phone</dt>
-            <dd className="text-right font-semibold">{lead.phone.trim()}</dd>
+          <div className="flex items-center justify-between gap-3 border-b border-line/60 pb-2.5">
+            <dt className="text-muted flex items-center gap-1.5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+              Phone
+            </dt>
+            <dd className="font-semibold text-ink flex items-center gap-1.5">
+              <a href={`tel:${lead.phone.trim()}`} className="hover:text-primary transition-colors">
+                {lead.phone.trim()}
+              </a>
+              <button
+                type="button"
+                onClick={copyPhone}
+                className="text-muted hover:text-ink p-0.5 text-xs"
+                title="Copy phone"
+              >
+                {copiedPhone ? "✓" : "📋"}
+              </button>
+            </dd>
           </div>
         ) : null}
-        <div className="flex items-center justify-between gap-3">
-          <dt className="text-muted">Rating</dt>
-          <dd className="text-right font-semibold">
+
+        <div className="flex items-center justify-between gap-3 border-b border-line/60 pb-2.5">
+          <dt className="text-muted flex items-center gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="text-amber-500">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            Google Rating
+          </dt>
+          <dd className="font-semibold text-ink">
             {lead.rating === null
-              ? "No rating yet"
-              : `${lead.rating.toFixed(1)} · ${lead.review_count.toLocaleString("en-US")} reviews`}
+              ? "No rating"
+              : `${lead.rating.toFixed(1)} (${lead.review_count} reviews)`}
           </dd>
         </div>
+
         {locality ? (
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted">Area</dt>
-            <dd className="text-right font-semibold">{locality}</dd>
+          <div className="flex items-center justify-between gap-3 border-b border-line/60 pb-2.5">
+            <dt className="text-muted flex items-center gap-1.5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              Location
+            </dt>
+            <dd className="font-semibold text-ink text-right truncate max-w-[160px]">{locality}</dd>
           </div>
         ) : null}
+
         <div className="flex items-center justify-between gap-3">
-          <dt className="text-muted">Lead status</dt>
-          <dd className="text-right font-semibold">{lead.lead_status || "—"}</dd>
+          <dt className="text-muted">Status</dt>
+          <dd className="font-bold text-ink">
+            <span className="inline-flex items-center gap-1 rounded-full bg-canvas border border-line px-2.5 py-0.5 text-[11px]">
+              {lead.lead_status || "NEW"}
+            </span>
+          </dd>
         </div>
       </dl>
     </section>
@@ -534,50 +645,99 @@ export function ContactPanel(props: ContactPanelProps) {
   return (
     <div className="flex flex-col gap-4">
       {props.contactFound && email ? (
-        <div className="flex flex-col gap-1.5">
-          {name ? <p className="text-xl font-bold tracking-tight">{name}</p> : null}
-          <p className="break-all text-[15px] font-semibold text-primary">{email}</p>
-          {source ? (
-            <p className="text-sm text-muted">Found from {source}</p>
-          ) : (
-            <p className="text-sm text-muted">Contact email on file</p>
-          )}
-          <div>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 sm:p-6 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-emerald-600 text-white font-extrabold text-lg shadow-xs">
+                @
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-base font-bold text-ink">{name || "Verified Business Contact"}</p>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                    ✓ Verified Email
+                  </span>
+                </div>
+                <p className="mt-0.5 break-all text-sm font-bold text-primary">{email}</p>
+                {source ? (
+                  <p className="mt-0.5 text-xs text-muted">Discovered via {source}</p>
+                ) : (
+                  <p className="mt-0.5 text-xs text-muted">Public business contact on file</p>
+                )}
+              </div>
+            </div>
             <button
               type="button"
               onClick={handleCopy}
-              className="btn-secondary mt-2"
+              className="btn-secondary h-9 px-4 text-xs font-bold"
             >
-              {copied ? "Copied ✓" : "Copy"}
+              {copied ? "Copied ✓" : "Copy Email"}
             </button>
           </div>
         </div>
       ) : null}
+
       {!props.contactFound && props.researchDone && invalid ? (
-        <p className="text-[15px] leading-relaxed">Contact information needs attention.</p>
+        <div className="rounded-2xl border border-red-200 bg-red-50/50 p-5 text-sm text-red-800">
+          <p className="font-bold">Contact information needs attention</p>
+          <p className="mt-1 text-xs text-red-700">The discovered contact email could not be verified automatically.</p>
+        </div>
       ) : null}
+
       {!props.contactFound && props.researchDone && !props.canFindContact && !invalid ? (
-        <p className="text-[15px] leading-relaxed text-muted">
-          {notFound
-            ? "No contact email discovered yet — no publicly listed business email exists."
-            : "Contact discovery is not available for this lead yet."}
-        </p>
+        <div className="rounded-2xl border border-line bg-canvas/40 p-5 text-sm text-muted">
+          <p className="font-semibold text-ink">
+            {notFound
+              ? "No publicly listed business contact email found"
+              : "Contact discovery is currently not available for this lead."}
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            You can still generate personalized outreach using the company research below.
+          </p>
+        </div>
       ) : null}
+
       {!props.researchDone ? (
-        <p className="text-[15px] leading-relaxed text-muted">
-          Complete research to unlock contact discovery.
-        </p>
+        <div className="rounded-2xl border border-line bg-canvas/40 p-5 flex items-center gap-3.5">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl border border-line bg-surface text-muted">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-ink">Contact Discovery Locked</p>
+            <p className="mt-0.5 text-xs text-muted">Complete Step 1 (Company Intelligence) above to extract decision-maker emails.</p>
+          </div>
+        </div>
       ) : null}
+
       {props.canFindContact ? (
-        <div>
-          <button
-            type="button"
-            onClick={props.onFindContact}
-            disabled={props.busy}
-            className="primary-action max-w-64"
-          >
-            {props.busyAction === "contact" ? "Finding contact…" : "Find Contact →"}
-          </button>
+        <div className="rounded-2xl border border-line bg-gradient-to-b from-surface to-canvas/40 p-6 shadow-xs">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-ink">Find Verified Decision-Maker Email</h3>
+                <p className="mt-0.5 text-xs text-muted">
+                  LeadPilot will scan online directories, domain records, and public channels for verified contact emails.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={props.onFindContact}
+              disabled={props.busy}
+              className="primary-action shrink-0 px-6 sm:w-auto"
+            >
+              {props.busyAction === "contact" ? "Finding contact…" : "Find Contact →"}
+            </button>
+          </div>
         </div>
       ) : null}
     </div>
@@ -586,30 +746,51 @@ export function ContactPanel(props: ContactPanelProps) {
 
 export function OutreachEmpty({ onGenerate, busy }: { onGenerate: () => void; busy: boolean }) {
   return (
-    <div className="flex flex-col gap-4">
-      <p className="max-w-xl text-[15px] leading-relaxed text-muted">
-        Turn your research into a personalized email.
-      </p>
-      <p className="text-sm font-semibold">LeadPilot will use:</p>
-      <ul className="flex flex-col gap-1.5 text-sm">
-        {["Company intelligence", "Business context", "Contact information", "Your offer"].map((item) => (
-          <li key={item} className="inline-flex items-center gap-2">
-            <span aria-hidden="true" className="font-bold text-[var(--success-ink)]">
-              ✓
-            </span>
-            {item}
-          </li>
-        ))}
-      </ul>
-      <div>
+    <div className="rounded-2xl border border-line bg-gradient-to-b from-surface to-canvas/40 p-6 sm:p-7 shadow-xs">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3.5">
+          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 19l7-7 3 3-7 7-3-3z" />
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+              <path d="M2 2l7.586 7.586" />
+              <circle cx="11" cy="11" r="2" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-ink">Generate Personalized Outreach</h3>
+            <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted">
+              Combine extracted company insights, services, and your unique offer into a tailored cold email draft.
+            </p>
+          </div>
+        </div>
         <button
           type="button"
           onClick={onGenerate}
           disabled={busy}
-          className="primary-action max-w-64"
+          className="primary-action shrink-0 px-6 sm:w-auto"
         >
           Generate Email →
         </button>
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-4 border-t border-line/80 pt-4 text-xs font-semibold text-muted">
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          Company Insights
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          Decision-Maker Context
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          Tailored Pitch Angle
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+          Clear Call-to-Action
+        </div>
       </div>
     </div>
   );
@@ -902,24 +1083,52 @@ export function ResearchPending({
   busyAction: string | null;
   onResearch: () => void;
 }) {
-  const copy =
-    state === "FAILED"
-      ? "Research couldn't be completed."
-      : state === "PENDING"
-        ? "This lead is marked pending — you can start research whenever you're ready."
-        : "Research hasn't started yet.";
+  const isFailed = state === "FAILED";
+
   return (
-    <div className="flex flex-col gap-4">
-      <p className="max-w-xl text-[15px] leading-relaxed text-muted">{copy}</p>
-      <div>
+    <div className="rounded-2xl border border-line bg-gradient-to-b from-surface to-canvas/40 p-6 sm:p-7 shadow-xs">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3.5">
+          <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-ink">
+              {isFailed ? "Research Incomplete" : "Launch AI Company Research"}
+            </h3>
+            <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted">
+              {isFailed
+                ? "The previous research attempt didn't complete. Click below to retry extracting company intelligence."
+                : "LeadPilot will crawl the company's online presence, discover services, target demographics, reviews, and prepare key outreach angles."}
+            </p>
+          </div>
+        </div>
+
         <button
           type="button"
           onClick={onResearch}
           disabled={busy}
-          className="primary-action max-w-64"
+          className="primary-action shrink-0 px-6 sm:w-auto"
         >
           {busyAction === "research" ? "Researching company…" : "Research Company →"}
         </button>
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-3 border-t border-line/80 pt-4 text-xs font-semibold text-muted">
+        <div className="flex items-center gap-2">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
+          <span>Products & Services</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
+          <span>Target Audience & Value</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓</span>
+          <span>Outreach Personalization</span>
+        </div>
       </div>
     </div>
   );
@@ -927,21 +1136,24 @@ export function ResearchPending({
 
 export function ResearchRunning() {
   return (
-    <div className="flex items-start gap-3" role="status">
-      <svg
-        viewBox="0 0 20 20"
-        fill="none"
-        aria-hidden="true"
-        focusable="false"
-        className="mt-0.5 h-5 w-5 flex-none animate-spin text-[var(--focus)]"
-      >
-        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeOpacity="0.3" strokeWidth="2" />
-        <path d="M18 10a8 8 0 0 0-8-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
+    <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-6 flex items-start gap-4 shadow-xs" role="status">
+      <div className="flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-blue-600 text-white">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-5 w-5 animate-spin"
+        >
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+        </svg>
+      </div>
       <div>
-        <p className="text-[15px] font-bold">Researching company…</p>
-        <p className="mt-1 text-sm text-muted">
-          This page refreshes automatically when research completes.
+        <p className="text-base font-bold text-blue-950">AI Research in Progress…</p>
+        <p className="mt-1 text-xs text-blue-800 leading-relaxed">
+          LeadPilot is analyzing company website pages, services, customer feedback, and value propositions. This page updates automatically.
         </p>
       </div>
     </div>
@@ -959,46 +1171,93 @@ export function WorkspaceHeader({
   const mapsUrl = lead.google_maps_url.trim();
   const address = lead.address.trim();
   const locality = address ? localityOf(address) : "";
+  const initial = lead.business_name.trim().charAt(0).toUpperCase() || "B";
+
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-        <div className="min-w-0 max-w-2xl">
-          <h1 className="text-3xl font-bold tracking-[-0.02em] sm:text-4xl">
-            {lead.business_name}
-          </h1>
-          {lead.category.trim() ? (
-            <p className="mt-2 text-sm leading-relaxed text-muted sm:text-base">
-              {lead.category.trim()}
-            </p>
-          ) : null}
-          {locality ? <p className="mt-1 text-sm text-muted">{locality}</p> : null}
+    <div className="rounded-3xl border border-line bg-surface p-6 sm:p-8 shadow-xs">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-4">
+          <div className="flex h-16 w-16 flex-none items-center justify-center rounded-2xl border border-line bg-canvas text-2xl font-extrabold text-ink shadow-xs">
+            {initial}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink truncate">
+                {lead.business_name}
+              </h1>
+              {lead.lead_status ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-[var(--primary-deep)]/20 bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
+                  {lead.lead_status}
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">
+              {lead.category.trim() ? (
+                <span className="inline-flex items-center rounded-lg bg-canvas border border-line px-2.5 py-0.5 font-semibold text-ink">
+                  {lead.category.trim()}
+                </span>
+              ) : null}
+
+              {locality ? (
+                <span className="inline-flex items-center gap-1 text-muted">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  {locality}
+                </span>
+              ) : null}
+
+              {lead.rating !== null ? (
+                <span className="inline-flex items-center gap-1 font-bold text-ink">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" className="text-amber-500">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  {lead.rating.toFixed(1)}
+                  <span className="font-normal text-muted">({lead.review_count} reviews)</span>
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-3.5 flex flex-wrap items-center gap-3">
+              {website ? (
+                <a
+                  href={/^https?:\/\//i.test(website) ? website : `https://${website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-semibold text-primary hover:border-line-strong hover:underline transition-colors"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  </svg>
+                  {domainOf(website)} ↗
+                </a>
+              ) : null}
+              {mapsUrl ? (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-canvas px-3 py-1.5 text-xs font-semibold text-muted hover:border-line-strong hover:text-ink transition-colors"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
+                    <line x1="9" y1="3" x2="9" y2="18" />
+                    <line x1="15" y1="6" x2="15" y2="21" />
+                  </svg>
+                  Google Maps ↗
+                </a>
+              ) : null}
+            </div>
+          </div>
         </div>
-        <div className="flex flex-none flex-col items-start gap-3 sm:items-end">{nextAction}</div>
+
+        <div className="flex flex-none sm:self-center">{nextAction}</div>
       </div>
-      {website || mapsUrl ? (
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          {website ? (
-            <a
-              href={/^https?:\/\//i.test(website) ? website : `https://${website}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary"
-            >
-              {domainOf(website)} ↗
-            </a>
-          ) : null}
-          {mapsUrl ? (
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary"
-            >
-              Google Maps ↗
-            </a>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -1006,12 +1265,20 @@ export function WorkspaceHeader({
 export function NoticeBanner({ notice }: { notice: { tone: "ok" | "error" | "info"; text: string } }) {
   return (
     <div
-      className="status-card"
-      data-tone={notice.tone === "error" ? "error" : notice.tone === "ok" ? "success" : undefined}
+      className={`rounded-2xl border p-4 text-sm font-medium transition-all ${
+        notice.tone === "error"
+          ? "border-red-200 bg-red-50 text-red-800"
+          : notice.tone === "ok"
+            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+            : "border-blue-200 bg-blue-50 text-blue-800"
+      }`}
       role={notice.tone === "error" ? "alert" : "status"}
     >
-      <div>
-        <p className="text-sm font-medium leading-snug">{notice.text}</p>
+      <div className="flex items-center gap-2.5">
+        <span className="font-bold">
+          {notice.tone === "error" ? "✕" : notice.tone === "ok" ? "✓" : "ℹ"}
+        </span>
+        <p className="leading-snug">{notice.text}</p>
       </div>
     </div>
   );
@@ -1029,12 +1296,16 @@ export function WorkspaceSection({
   children: React.ReactNode;
 }) {
   return (
-    <section aria-label={title} id={id} className="flex scroll-mt-6 flex-col gap-5">
-      <div className="flex flex-col gap-1 border-b border-line pb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{eyebrow}</p>
-        <h2 className="text-xl font-bold tracking-tight">{title}</h2>
+    <section aria-label={title} id={id} className="flex scroll-mt-6 flex-col gap-4 rounded-3xl border border-line bg-surface p-6 sm:p-8 shadow-xs">
+      <div className="flex items-center justify-between border-b border-line/80 pb-4">
+        <div>
+          <span className="inline-flex items-center rounded-full bg-canvas border border-line px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted">
+            {eyebrow}
+          </span>
+          <h2 className="mt-1.5 text-xl font-bold tracking-tight text-ink">{title}</h2>
+        </div>
       </div>
-      {children}
+      <div className="pt-2">{children}</div>
     </section>
   );
 }
